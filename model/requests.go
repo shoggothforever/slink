@@ -8,14 +8,7 @@ type LoginInfo struct {
 	Pwd   string `form:"pwd"`
 }
 
-//use for record get
-type LoginRecord struct {
-	Time   time.Time
-	Ip     string
-	Status string
-}
-
-//use for create and update
+//use for create and update and relative operations
 type UrlInfo struct {
 	Origin     string
 	Short      string

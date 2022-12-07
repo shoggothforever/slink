@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 //common response
 type Response struct {
 	Code int    `form:"code" json:"code"`
@@ -13,14 +15,23 @@ type GetResponse struct {
 	Urls []UrlInfo `form:"urls" json:"urls"`
 }
 
-//return user's id
+//return id of user
 type CreateResponse struct {
 	Response
 	Id string `form:"id"`
 }
+
+//
 type QueryResponse struct {
 	Response
-	url UrlInfo `form:"url" json:"url"`
+	Url UrlInfo `form:"url" json:"url"`
+}
+
+//use for record get
+type LoginRecord struct {
+	Time   time.Time
+	Ip     string
+	Status string
 }
 
 //只需返回基本信息，可以适当添加额外信息
