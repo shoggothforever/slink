@@ -1,0 +1,11 @@
+TimeStamp: "2022-10-29 13:23:19"
+Jwt:
+    Secret: "whoknow"
+Username: "dsm"
+Password: "dsm"
+Mysql:
+    Predsn: "link:link@tcp(127.0.0.1:3306)/"
+    Database: "slink"
+    Mode: "?parseTime=true&loc=Local&charset=utf8"
+#mongo:
+#  Mongouri:"mongodb://localhost:27017/hollow"
