@@ -17,7 +17,6 @@ type UrlRequest struct {
 
 func (u *UrlRequest) Set(lurl string) string {
 
-	u.set(lurl, u.genshort(lurl))
 }
 func (u *UrlRequest) set(lurl, surl string) string {
 

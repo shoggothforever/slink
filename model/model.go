@@ -1,5 +1,9 @@
 package model
 
+import (
+	"github.com/jinzhu/gorm"
+)
+
 type Store interface {
 	//读入长url并获取短url的外部接口,返回短url字符串
 	Set(lurl string) string
@@ -7,4 +11,12 @@ type Store interface {
 	set(lurl, surl string) bool
 	//生成短url的函数
 	genshort(lurl string) string
+}
+
+//UserTable
+type User struct {
+	model gorm.Model
+	Name  string `gorm:"type:varchar(40)" form:"name"`
+	Email string `gorm:"type:varchar(40)" form:"email"`
+	Pwd   string `gorm:"type:varchar(40)" form:"pwd"`
 }

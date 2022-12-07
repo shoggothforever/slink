@@ -1,15 +1,16 @@
-package models
+package dao
 
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"shortlink/dao"
+	"shortlink/model"
 )
 
 var Db *gorm.DB
-var JwtSecret string
+
+//var JwtSecret string
 
 /*
 * @brief init the config of viper and database
@@ -40,7 +41,7 @@ func Init() {
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"error": err}).Error("gorm OPENS MySQL failed")
 	}
-	err = Db.AutoMigrate(&dao.UrlRequest{})
+	err = Db.AutoMigrate(&model.User{})
 	if err != nil {
 		logrus.Error("build tables corrupt!\n", err)
 	}
