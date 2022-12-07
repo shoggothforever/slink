@@ -1,8 +1,6 @@
 package model
 
-import (
-	"github.com/jinzhu/gorm"
-)
+import "time"
 
 type Store interface {
 	//读入长url并获取短url的外部接口,返回短url字符串
@@ -13,10 +11,28 @@ type Store interface {
 	genshort(lurl string) string
 }
 
+//use for create and update and relative operations
+type UrlInfo struct {
+	Id      int    `gorm:"type:uint;primaryKey autoincrement" form:"id" json:"id"`
+	UserId  string `gorm:"type:varchar(10) column:user_id" form:"user_id" json:"user_id"`
+	Origin  string `gorm:"type:varchar(60)" form:"origin" json:"origin"`
+	Short   string `gorm:"type:varchar(20)" form:"short" json:"short"`
+	Comment string `gorm:"type:varchar(100)" form:"comment" json:"comment"`
+	//StartTime  time.Time `gorm:"type:datetime"`
+	//ExpireTime time.Time `gorm:"type:datetime"`
+}
+
 //UserTable
 type User struct {
-	model gorm.Model
-	Name  string `gorm:"type:varchar(40)" form:"name"`
-	Email string `gorm:"type:varchar(40)" form:"email"`
-	Pwd   string `gorm:"type:varchar(40)" form:"pwd"`
+	Id        int    `gorm:"type:uint;primaryKey autoincrement" form:"id" json:"id"`
+	Name      string `gorm:"type:varchar(40) " form:"name"`
+	Email     string `gorm:"type:varchar(40) " form:"email"`
+	Pwd       string `gorm:"type:varchar(40) " form:"pwd"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	Url       UrlInfo `gorm:"foreignKey:UserId "`
+}
+
+func (u User) TableName() string {
+	return "users"
 }
