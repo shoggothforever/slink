@@ -45,4 +45,5 @@ func Init() {
 	if err != nil {
 		logrus.Error("build tables corrupt!\n", err)
 	}
+
 }

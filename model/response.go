@@ -14,13 +14,15 @@ type RegisterResponse struct {
 }
 type LoginResponse struct {
 	Response
-	CurrentUser User
+	Id int
 }
 
 //content the list of urls,use for get function
-type GetResponse struct {
+type InfoResponse struct {
 	Response
-	Urls []UrlInfo `form:"urls" json:"urls"`
+	Id    int
+	Name  string
+	Email string
 }
 
 //return id of user
@@ -37,8 +39,12 @@ type QueryResponse struct {
 
 //use for record get
 type LoginRecord struct {
-	LastLoginTime time.Time
-	Status        string
+	Id      int
+	LoginAt time.Time
+}
+type LoginInfoResponse struct {
+	Response
+	Records []LoginRecord
 }
 
 //只需返回基本信息，可以适当添加额外信息

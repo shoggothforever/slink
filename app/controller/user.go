@@ -9,7 +9,6 @@ import (
 )
 
 func SaveUser(u *model.User) error {
-
 	if err := dao.Db.Omit("id").Create(u).Error; err != nil {
 		logrus.Error("插入数据失败", err)
 		return gorm.ErrNotImplemented
@@ -17,6 +16,13 @@ func SaveUser(u *model.User) error {
 	return nil
 }
 func SaveUrl(u *model.UrlInfo) error {
+	var dupl []model.UrlInfo
+	dao.Db.Where("user_id=? and origin=? and short=?", model.CurrentUser.GetId(), u.Origin, u.Short).First(&dupl)
+	if len(dupl) != 0 {
+		logrus.Info("数据已存在")
+		*u = dupl[0]
+		return nil
+	}
 	var data []model.User
 	dao.Db.Where("id", u.UserId).Find(&data)
 	if len(data) == 0 {
@@ -25,7 +31,8 @@ func SaveUrl(u *model.UrlInfo) error {
 	u.StartTime = time.Now()
 	u.ExpireTime = time.Now().Add(time.Hour * 24)
 	u.UserId = model.CurrentUser.GetId()
-	u.Short = ""
+	//需要使用短链接生成算法
+	//u.Short=genshort(u.Origin)
 	if err := dao.Db.Omit("id").Create(u).Error; err != nil {
 		logrus.Error("插入数据失败", err)
 		return gorm.ErrNotImplemented

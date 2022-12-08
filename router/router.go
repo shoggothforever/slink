@@ -33,11 +33,12 @@ func Router() {
 	urlRoute := r.Group("/url")
 	{
 		urlRoute.POST("/create", controller.Create)
-		urlRoute.POST("/query", controller.Querry)
-		urlRoute.POST("/update", controller.Update)
-		urlRoute.POST("/delete", controller.Delete)
+		urlRoute.POST("/query", controller.Query)
+		urlRoute.PUT("/update", controller.Update)
+		urlRoute.DELETE("/delete", controller.Delete)
 		urlRoute.POST("/pause", controller.Pause)
 		urlRoute.POST("/shorten", controller.Shorten)
 	}
+	go controller.Clean()
 	r.Run(":9090")
 }

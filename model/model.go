@@ -35,7 +35,7 @@ type User struct {
 	Pwd       string `gorm:"type:varchar(40) " form:"pwd"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	Url       UrlInfo `gorm:"foreignKey:UserId "`
+	Url       []UrlInfo `gorm:"foreignKey:UserId "`
 }
 
 var CurrentUser User
