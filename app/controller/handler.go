@@ -179,13 +179,12 @@ func Update(c *gin.Context) {
 	dao.Db.Model(model.UrlInfo{}).Where("user_id=? and origin=? and short=?", id, url.Origin, short).Updates(map[string]interface{}{
 		"short":       url.Short,
 		"comment":     url.Comment,
-		"start_time":  time.Now(),
-		"expire_time": time.Now().Add(24 * time.Hour),
+		"start_time":  time.Now().In(time.Local),
+		"expire_time": time.Now().Add(24 * time.Hour).In(time.Local),
 	})
 	c.JSON(200, model.UpdateResponse{
 		model.Response{200, "更新成功"},
 	})
-
 }
 func Delete(c *gin.Context) {
 	var url []model.UrlInfo
@@ -209,15 +208,4 @@ func Pause(c *gin.Context) {
 }
 func Shorten(c *gin.Context) {
 
-}
-func Clean() {
-	st := time.Now().Unix()
-	for {
-		ed := time.Now().Unix() - st
-		if ed >= 86400 {
-			dao.Db.Exec(" from url_infos where datediff(NOW(),url_infos.start_time)>=1")
-			st = ed
-		}
-
-	}
 }
