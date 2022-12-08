@@ -37,6 +37,7 @@ func Router() {
 		urlRoute.POST("/update", controller.Update)
 		urlRoute.POST("/delete", controller.Delete)
 		urlRoute.POST("/pause", controller.Pause)
+		urlRoute.POST("/shorten", controller.Shorten)
 	}
 	r.Run(":9090")
 }

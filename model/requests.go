@@ -1,7 +1,7 @@
 package model
 
 //use for login
-type LoginInfo struct {
+type Login struct {
 	Email string `form:"email"`
 	Pwd   string `form:"pwd"`
 }

@@ -18,20 +18,19 @@ type GetResponse struct {
 //return id of user
 type CreateResponse struct {
 	Response
-	Id string `form:"id"`
+	url UrlInfo `form:"url" json:"url"'`
 }
 
 //
 type QueryResponse struct {
 	Response
-	Url UrlInfo `form:"url" json:"url"`
+	Url []UrlInfo `form:"url" json:"url"`
 }
 
 //use for record get
 type LoginRecord struct {
-	Time   time.Time
-	Ip     string
-	Status string
+	LastLoginTime time.Time
+	Status        string
 }
 
 //只需返回基本信息，可以适当添加额外信息
