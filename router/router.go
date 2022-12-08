@@ -2,7 +2,6 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"net/http"
 	"shortlink/app/controller"
 )
 
@@ -17,9 +16,12 @@ func Router() {
 	*/
 	//r.LoadHTMLGlob("htmlFilePath")htmlFilePath="templates/*"解析模板
 	//r.Static("/statics/html/xxx", "./statics/html") //处理静态文件
-	r.NoRoute(func(c *gin.Context) {
-		c.HTML(http.StatusNotFound, "views/404.html", nil)
-	})
+	//r.NoRoute(func(c *gin.Context) {
+	//	c.HTML(http.StatusNotFound, "views/404.html", nil)
+	//})
+	//r.NoRoute(func(c *gin.Context) {
+	//	c.Redirect(http.StatusMovedPermanently, "https://www.baidu.com")
+	//})
 	userRoute := r.Group("/user")
 	{
 		userRoute.POST("/register", controller.Register)

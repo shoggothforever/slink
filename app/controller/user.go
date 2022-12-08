@@ -28,8 +28,8 @@ func SaveUrl(u *model.UrlInfo) error {
 	if len(data) == 0 {
 		logrus.Info("UserId invalid,Please use this service after Login")
 	}
-	u.StartTime = time.Now()
-	u.ExpireTime = time.Now().Add(time.Hour * 24)
+	u.StartTime = time.Now().In(time.Local)
+	u.ExpireTime = time.Now().In(time.Local).Add(time.Hour * 24)
 	u.UserId = model.CurrentUser.GetId()
 	//需要使用短链接生成算法
 	//u.Short=genshort(u.Origin)
@@ -40,11 +40,21 @@ func SaveUrl(u *model.UrlInfo) error {
 	return nil
 }
 func SaveLogin(l *model.LoginInfo) error {
-	l.LoginAt = time.Now()
+	l.LoginAt = time.Now().In(time.Local)
 	l.UserId = model.CurrentUser.Id
 	if err := dao.Db.Omit("id").Create(&l).Error; err != nil {
 		logrus.Error("插入数据失败", err)
 		return gorm.ErrNotImplemented
 	}
 	return nil
+}
+func Clean() {
+	st := time.Now().Unix()
+	for {
+		ed := time.Now().Unix() - st
+		if ed >= 10 {
+			dao.Db.Exec("delete from url_infos where datediff(NOW(),url_infos.start_time)>=1")
+			st = ed
+		}
+	}
 }
