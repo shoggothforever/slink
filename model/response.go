@@ -8,6 +8,14 @@ type Response struct {
 	Msg  string `form:"msg" json:"msg"`
 	//Data interface{} `form:"data" json:"data"` //根据要求传入具体的响应
 }
+type RegisterResponse struct {
+	Response
+	User User
+}
+type LoginResponse struct {
+	Response
+	CurrentUser User
+}
 
 //content the list of urls,use for get function
 type GetResponse struct {

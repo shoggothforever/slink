@@ -15,17 +15,47 @@ func Register(c *gin.Context) {
 	user.Name = c.PostForm("name")
 	user.Email = c.PostForm("email")
 	user.Pwd = c.PostForm("pwd")
-	SaveUser(&user)
+	if err := SaveUser(&user); err == nil {
+		c.JSON(200, model.RegisterResponse{
+			model.Response{200, "注册成功"},
+			user,
+		})
+	} else {
+		c.JSON(200, gin.H{
+			"code": 400,
+			"msg":  "注册失败",
+		})
+	}
 }
 
 // login
 func Login(c *gin.Context) {
-
+	var user model.User
+	user.Name = c.PostForm("name")
+	user.Pwd = c.PostForm("pwd")
+	var data []model.User
+	dao.Db.Where("name=? AND pwd=?", user.Name, user.Pwd).First(&data)
+	if len(data) == 0 {
+		c.JSON(200, gin.H{
+			"code": 400,
+			"msg":  "登录失败，请输入正确的账户名和密码",
+		})
+	} else {
+		model.CurrentUser = data[0]
+		c.JSON(200, model.LoginResponse{
+			model.Response{200, "登陆成功"},
+			model.CurrentUser,
+		})
+	}
 }
 
 // logout
 func Logout(c *gin.Context) {
-
+	model.CurrentUser = model.User{}
+	c.JSON(200, model.LoginResponse{
+		model.Response{200, "退出成功"},
+		model.CurrentUser,
+	})
 }
 
 // info
@@ -70,6 +100,10 @@ func Querry(c *gin.Context) {
 	dao.Db.Raw("select * from url_infos where url_infos.user_id=(select id from users where id=?)", id).First(&urls)
 	if len(urls) == 0 {
 		logrus.Info("no such document")
+		c.JSON(200, model.Response{
+			400,
+			"没有此链接",
+		})
 	} else {
 		c.JSON(200, model.QueryResponse{
 			model.Response{200, "查找到信息"},
