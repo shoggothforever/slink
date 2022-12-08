@@ -28,7 +28,7 @@ type InfoResponse struct {
 //return id of user
 type CreateResponse struct {
 	Response
-	url UrlInfo `form:"url" json:"url"'`
+	Url UrlInfo `form:"url" json:"url"`
 }
 
 //
