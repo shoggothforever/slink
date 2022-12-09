@@ -25,19 +25,6 @@ func Register(c *gin.Context) {
 			user,
 		})
 		model.CurrentUser = user
-		//if err := SaveLogin(&login); err == nil {
-		//	model.CurrentUser = user
-		//	c.JSON(200, model.LoginResponse{
-		//		model.Response{200, ""},
-		//		model.CurrentUser.GetId(),
-		//	})
-		//} else {
-		//	model.CurrentUser = user
-		//	c.JSON(200, model.LoginResponse{
-		//		model.Response{201, ""},
-		//		model.CurrentUser.GetId(),
-		//	})
-		//}
 	} else if err == gorm.ErrRegistered {
 		c.JSON(200, gin.H{
 			"code": 400,
@@ -149,7 +136,7 @@ handler for /url
 func Create(c *gin.Context) {
 	var url model.UrlInfo
 	url.Origin = c.PostForm("origin")
-	url.Short = c.PostForm("short")
+	url.Short = GenShort(c.PostForm("short"))
 	url.Comment = c.PostForm("comment")
 	if err := SaveUrl(&url); err == nil {
 		c.JSON(200, gin.H{
@@ -187,7 +174,7 @@ func Update(c *gin.Context) {
 	id := model.CurrentUser.GetId()
 	url.Origin = c.PostForm("origin")
 	short := c.PostForm("oldshort")
-	url.Short = c.PostForm("newshort")
+	url.Short = GenShort(c.PostForm("newshort"))
 	url.Comment = c.PostForm("comment")
 	dao.Db.Model(model.UrlInfo{}).Where("user_id=? and origin=? and short=?", id, url.Origin, short).Updates(map[string]interface{}{
 		"short":       url.Short,
@@ -218,8 +205,5 @@ func Delete(c *gin.Context) {
 	}
 }
 func Pause(c *gin.Context) {
-
-}
-func Shorten(c *gin.Context) {
 
 }

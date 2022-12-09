@@ -39,6 +39,7 @@ func Router() {
 			logrus.Fatalf("listen: %s\n", err)
 		}
 	}()
+	r.Use(controller.RedirectShort())
 	r.GET("/", func(c *gin.Context) {
 		time.Sleep(5 * time.Second)
 		c.String(http.StatusOK, "Welcome Gin Server")
@@ -73,7 +74,7 @@ func Router() {
 		urlRoute.PUT("/update", controller.Update)
 		urlRoute.DELETE("/delete", controller.Delete)
 		urlRoute.POST("/pause", controller.Pause)
-		urlRoute.POST("/shorten", controller.Shorten)
+
 	}
 
 	//平滑地关机

@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
+	"math/rand"
 	"shortlink/dao"
 	"shortlink/model"
 	"time"
@@ -48,8 +49,6 @@ func SaveUrl(u *model.UrlInfo) error {
 	u.StartTime = time.Now().In(time.Local)
 	u.ExpireTime = time.Now().In(time.Local).Add(time.Hour * 24)
 	u.UserId = model.CurrentUser.GetId()
-	//需要使用短链接生成算法
-	//u.Short=genshort(u.Origin)
 	if err := dao.Db.Omit("id").Create(u).Error; err != nil {
 		logrus.Error("插入数据失败", err)
 		return gorm.ErrNotImplemented
@@ -76,4 +75,12 @@ func Clean() {
 			}
 		}
 	}
+}
+func GenShort(short string) string {
+	if short != "" {
+		return short
+	}
+	ts := time.Now().UnixNano()
+	rand.Seed(ts)
+	return Encode(int(ts))
 }
