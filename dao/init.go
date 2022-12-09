@@ -9,8 +9,7 @@ import (
 )
 
 var Db *gorm.DB
-
-//var JwtSecret string
+var JwtSecret string
 
 /*
 * @brief init the config of viper and database
@@ -35,6 +34,8 @@ func Init() {
 			logrus.Error("found error in config file\n", ok)
 		}
 	}
+	jwtInfo := Config.GetStringMapString("Jwt")
+	JwtSecret = jwtInfo["secret"]
 	loginInfo := Config.GetStringMapString("mysql")
 	Dsn := loginInfo["predsn"] + loginInfo["database"] + loginInfo["mode"]
 	Db, err = gorm.Open(mysql.Open(Dsn), &gorm.Config{SkipDefaultTransaction: true})
@@ -45,5 +46,5 @@ func Init() {
 	if err != nil {
 		logrus.Error("build tables corrupt!\n", err)
 	}
-
+	model.CurrentUser.Id = model.NOTLOGIN
 }

@@ -1,8 +1,16 @@
 package router
 
 import (
+	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
 	"shortlink/app/controller"
+	"time"
 )
 
 func Router() {
@@ -19,20 +27,46 @@ func Router() {
 	//r.NoRoute(func(c *gin.Context) {
 	//	c.HTML(http.StatusNotFound, "views/404.html", nil)
 	//})
-	//r.NoRoute(func(c *gin.Context) {
+	//r.NoRoute(func(c *gin.Context) {//重定向使用路由实现，根据form中的短链从数据库中获取原链
 	//	c.Redirect(http.StatusMovedPermanently, "https://www.baidu.com")
 	//})
+	srv := &http.Server{
+		Addr:    ":9090",
+		Handler: r,
+	}
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logrus.Fatalf("listen: %s\n", err)
+		}
+	}()
+	r.GET("/", func(c *gin.Context) {
+		time.Sleep(5 * time.Second)
+		c.String(http.StatusOK, "Welcome Gin Server")
+	})
+	r.GET("/exit", func(c *gin.Context) {
+		srv.Shutdown(context.Background())
+	})
+	r.GET("/cookie", func(c *gin.Context) {
+
+		cookie, err := c.Cookie("gin_cookie")
+		if err != nil {
+			cookie = "NotSet"
+			c.SetCookie("gin_cookie", "test", 3600, "/", "localhost", false, true)
+		}
+
+		c.JSON(200, fmt.Sprintf("Cookie value: %s \n", cookie))
+	})
 	userRoute := r.Group("/user")
 	{
-		userRoute.POST("/register", controller.Register)
+		userRoute.POST("/register", controller.Register, controller.Login)
 		userRoute.POST("/login", controller.Login)
-		userRoute.POST("/logout", controller.Logout)
-		userRoute.POST("/info", controller.GetInfo)
-		userRoute.POST("/record/get", controller.GetLoginInfo)
-		userRoute.POST("/url/get", controller.GetUrl)
+		userRoute.POST("/logout", controller.AuthLogin(), controller.Logout)
+		userRoute.GET("/info", controller.AuthLogin(), controller.GetInfo)
+		userRoute.GET("/record/get", controller.AuthLogin(), controller.GetLoginInfo)
+		userRoute.GET("/url/get", controller.AuthLogin(), controller.GetUrl)
 
 	}
-	urlRoute := r.Group("/url")
+	urlRoute := r.Group("/url", controller.AuthLogin())
 	{
 		urlRoute.POST("/create", controller.Create)
 		urlRoute.POST("/query", controller.Query)
@@ -41,6 +75,18 @@ func Router() {
 		urlRoute.POST("/pause", controller.Pause)
 		urlRoute.POST("/shorten", controller.Shorten)
 	}
+
+	//平滑地关机
 	go controller.Clean()
-	r.Run(":9090")
+	quit := make(chan os.Signal)
+	signal.Notify(quit, os.Interrupt)
+	<-quit
+	log.Println("Shutdown Server ...")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatal("Server Shutdown:", err)
+	}
+	log.Println("Server exiting")
+	//r.Run(":9090")
 }

@@ -40,6 +40,7 @@ type QueryResponse struct {
 //use for record get
 type LoginRecord struct {
 	Id      int
+	UserId  int
 	LoginAt time.Time
 }
 type LoginInfoResponse struct {

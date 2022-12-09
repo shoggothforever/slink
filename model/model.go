@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"github.com/dgrijalva/jwt-go"
+	"time"
+)
 
 type Store interface {
 	//读入长url并获取短url的外部接口,返回短url字符串
@@ -37,12 +40,27 @@ type User struct {
 	UpdatedAt time.Time
 	Url       []UrlInfo `gorm:"foreignKey:UserId "`
 }
+type Claims struct {
+	Id  string `json:"id"`
+	Psw string `json:"psw"`
+	jwt.StandardClaims
+}
 
+var AuthClaims *Claims
+var AuthToken string
+
+/*
+记录当前登录用户信息
+*/
 var CurrentUser User
+var NOTLOGIN int = -1
 
 func (u User) TableName() string {
 	return "users"
 }
 func (u User) GetId() int {
 	return u.Id
+}
+func (u UrlInfo) TableName() string {
+	return "url_infos"
 }

@@ -1,8 +1,10 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 	"shortlink/dao"
 	"shortlink/model"
 	"time"
@@ -13,7 +15,7 @@ handler for /user
 */
 func Register(c *gin.Context) {
 	var user model.User
-	var login model.LoginInfo
+	//var login model.LoginInfo
 	user.Name = c.PostForm("name")
 	user.Email = c.PostForm("email")
 	user.Pwd = c.PostForm("pwd")
@@ -23,19 +25,24 @@ func Register(c *gin.Context) {
 			user,
 		})
 		model.CurrentUser = user
-		if err := SaveLogin(&login); err == nil {
-			model.CurrentUser = user
-			c.JSON(200, model.LoginResponse{
-				model.Response{200, ""},
-				model.CurrentUser.GetId(),
-			})
-		} else {
-			model.CurrentUser = user
-			c.JSON(200, model.LoginResponse{
-				model.Response{201, ""},
-				model.CurrentUser.GetId(),
-			})
-		}
+		//if err := SaveLogin(&login); err == nil {
+		//	model.CurrentUser = user
+		//	c.JSON(200, model.LoginResponse{
+		//		model.Response{200, ""},
+		//		model.CurrentUser.GetId(),
+		//	})
+		//} else {
+		//	model.CurrentUser = user
+		//	c.JSON(200, model.LoginResponse{
+		//		model.Response{201, ""},
+		//		model.CurrentUser.GetId(),
+		//	})
+		//}
+	} else if err == gorm.ErrRegistered {
+		c.JSON(200, gin.H{
+			"code": 400,
+			"msg":  "该用户或者邮箱已存在",
+		})
 	} else {
 		c.JSON(200, gin.H{
 			"code": 400,
@@ -72,12 +79,16 @@ func Login(c *gin.Context) {
 				model.CurrentUser.GetId(),
 			})
 		}
+		SaveJwt(model.CurrentUser.Name, model.CurrentUser.Pwd)
+		fmt.Println(model.AuthClaims)
+		fmt.Println(model.AuthToken)
 	}
 }
 
 // logout
 func Logout(c *gin.Context) {
 	model.CurrentUser = model.User{}
+	model.CurrentUser.Id = -1
 	c.JSON(200, model.Response{
 		200, "退出成功",
 	})
@@ -91,13 +102,14 @@ func GetInfo(c *gin.Context) {
 		model.CurrentUser.Name,
 		model.CurrentUser.Email,
 	})
+
 }
 
 // record/get
 func GetLoginInfo(c *gin.Context) {
 	var infos []model.LoginRecord
 	id := model.CurrentUser.GetId()
-	dao.Db.Raw("select id,login_at from login_infos where user_id=?", id).Find(&infos)
+	dao.Db.Raw("select id,user_id,login_at from login_infos where user_id=? limit 0,10", id).Find(&infos)
 	if len(infos) == 0 {
 		logrus.Info("no login document")
 		c.JSON(200, model.Response{
@@ -151,6 +163,7 @@ func Create(c *gin.Context) {
 			"msg":  "链接信息存储失败",
 		})
 	}
+
 }
 func Query(c *gin.Context) {
 	var urls []model.UrlInfo
@@ -187,6 +200,7 @@ func Update(c *gin.Context) {
 	})
 }
 func Delete(c *gin.Context) {
+
 	var url []model.UrlInfo
 	id := model.CurrentUser.GetId()
 	origin := c.PostForm("origin")

@@ -8,11 +8,28 @@ import (
 	"time"
 )
 
+/*
+向数据库中保存用户，用户名和邮箱地址不能重复
+*/
 func SaveUser(u *model.User) error {
+	var user []model.User
+	dao.Db.Where("name=?", u.Name).Find(&user)
+	if len(user) != 0 {
+		logrus.Info("该用户名已存在")
+		*u = user[0]
+		return gorm.ErrRegistered
+	}
+	dao.Db.Where("email=?", u.Email).Find(&user)
+	if len(user) != 0 {
+		logrus.Info("该邮箱地址已存在已存在")
+		*u = user[0]
+		return gorm.ErrRegistered
+	}
 	if err := dao.Db.Omit("id").Create(u).Error; err != nil {
 		logrus.Error("插入数据失败", err)
 		return gorm.ErrNotImplemented
 	}
+
 	return nil
 }
 func SaveUrl(u *model.UrlInfo) error {
@@ -50,11 +67,13 @@ func SaveLogin(l *model.LoginInfo) error {
 }
 func Clean() {
 	st := time.Now().Unix()
-	for {
-		ed := time.Now().Unix() - st
-		if ed >= 10 {
-			dao.Db.Exec("delete from url_infos where datediff(NOW(),url_infos.start_time)>=1")
-			st = ed
+	if exist := dao.Db.Migrator().HasTable("slink.url_infos"); exist == true {
+		for {
+			ed := time.Now().Unix() - st
+			if ed >= 10 {
+				dao.Db.Exec("delete from url_infos where datediff(NOW(),url_infos.start_time)>=1")
+				st = ed
+			}
 		}
 	}
 }
