@@ -17,8 +17,20 @@ func Register(c *gin.Context) {
 	var user model.User
 	//var login model.LoginInfo
 	user.Name = c.PostForm("name")
+	if user.Name == "" {
+		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入用户名"})
+	}
 	user.Email = c.PostForm("email")
+	if user.Name == "" {
+		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入邮箱"})
+	}
 	user.Pwd = c.PostForm("pwd")
+	if user.Name == "" {
+		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入密码"})
+	}
+	if user.Name == "" || user.Email == "" || user.Pwd == "" {
+		return
+	}
 	if err := SaveUser(&user); err == nil {
 		c.JSON(200, model.RegisterResponse{
 			model.Response{200, "注册成功"},
@@ -43,7 +55,16 @@ func Login(c *gin.Context) {
 	var user model.User
 	var login model.LoginInfo
 	user.Name = c.PostForm("name")
+	if user.Name == "" {
+		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入用户名"})
+	}
 	user.Pwd = c.PostForm("pwd")
+	if user.Name == "" {
+		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入密码"})
+	}
+	if user.Name == "" || user.Pwd == "" {
+		return
+	}
 	var data []model.User
 	dao.Db.Where("name=? AND pwd=?", user.Name, user.Pwd).First(&data)
 	if len(data) == 0 {
@@ -95,7 +116,8 @@ func GetInfo(c *gin.Context) {
 func GetLoginInfo(c *gin.Context) {
 	var infos []model.LoginRecord
 	id := model.CurrentUser.GetId()
-	page, _ := strconv.Atoi(c.Query("page"))
+	page := 0
+	page, _ = strconv.Atoi(c.Query("page"))
 	if page == 0 {
 		page = 1
 	}
@@ -119,7 +141,8 @@ func GetLoginInfo(c *gin.Context) {
 func GetUrl(c *gin.Context) {
 	var urls []model.UrlInfo
 	id := model.CurrentUser.GetId()
-	page, _ := strconv.Atoi(c.Query("page"))
+	page := 0
+	page, _ = strconv.Atoi(c.Query("page"))
 	if page == 0 {
 		page = 1
 	}
@@ -145,6 +168,10 @@ handler for /url
 func Create(c *gin.Context) {
 	var url model.UrlInfo
 	url.Origin = c.PostForm("origin")
+	if url.Origin == "" {
+		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入需要转换的链接"})
+		return
+	}
 	url.Short = GenShort(c.PostForm("short"))
 	url.Comment = c.PostForm("comment")
 	if err := SaveUrl(&url); err == nil {
@@ -163,6 +190,10 @@ func Create(c *gin.Context) {
 func Query(c *gin.Context) {
 	var urls []model.UrlInfo
 	id := c.PostForm("id")
+	if id == "" {
+		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入需要查找的链接ID"})
+		return
+	}
 	dao.Db.Raw("select * from url_infos where url_infos.user_id=(select id from users where id=?)", id).First(&urls)
 	if len(urls) == 0 {
 		logrus.Info("no such document")
@@ -179,24 +210,41 @@ func Query(c *gin.Context) {
 }
 func Update(c *gin.Context) {
 	var url model.UrlInfo
+	url.Origin = ""
 	userid := model.CurrentUser.GetId()
 	id := c.PostForm("id")
+	if id == "" {
+		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入需要查找的链接ID"})
+		return
+	}
 	url.Short = GenShort(c.PostForm("newshort"))
 	url.Comment = c.PostForm("comment")
-	dao.Db.Model(model.UrlInfo{}).Where("user_id=? and id=?", userid, id).Updates(map[string]interface{}{
-		"short":       url.Short,
-		"comment":     url.Comment,
-		"start_time":  time.Now().In(time.Local),
-		"expire_time": time.Now().Add(24 * time.Hour).In(time.Local),
-	})
-	c.JSON(200, model.UpdateResponse{
-		model.Response{200, "更新成功"},
-	})
+	dao.Db.Model(model.UrlInfo{}).Where("user_id=? and id=?", userid, id).First(&url)
+	if url.Origin != "" {
+		dao.Db.Model(url).Updates(map[string]interface{}{
+			"short":       url.Short,
+			"comment":     url.Comment,
+			"start_time":  time.Now().In(time.Local),
+			"expire_time": time.Now().Add(24 * time.Hour).In(time.Local),
+		})
+		c.JSON(200, model.UpdateResponse{
+			model.Response{200, "更新成功"},
+		})
+	} else {
+		c.JSON(200, model.UpdateResponse{
+			model.Response{404, "该链接不存在"},
+		})
+	}
+
 }
 func Delete(c *gin.Context) {
 	var url []model.UrlInfo
 	userid := model.CurrentUser.GetId()
 	id := c.PostForm("id")
+	if id == "" {
+		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入需要删除的链接ID"})
+		return
+	}
 	dao.Db.Where("user_id=? and id=?", userid, id).Find(&url)
 	if len(url) == 0 {
 		c.JSON(200, model.Response{
@@ -211,6 +259,10 @@ func Delete(c *gin.Context) {
 }
 func Pause(c *gin.Context) {
 	id := c.PostForm("id")
+	if id == "" {
+		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入需要冻结的链接ID"})
+		return
+	}
 	user_id := model.CurrentUser.Id
 	var url model.UrlInfo
 	var purl model.PauseUrl

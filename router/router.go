@@ -75,7 +75,6 @@ func Router() {
 		urlRoute.PUT("/update", controller.Update)
 		urlRoute.DELETE("/delete", controller.Delete)
 		urlRoute.POST("/pause", controller.Pause)
-
 	}
 
 	//平滑地关机

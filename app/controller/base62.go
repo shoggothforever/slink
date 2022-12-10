@@ -2,48 +2,39 @@ package controller
 
 import (
 	_ "errors"
-	"github.com/sirupsen/logrus"
 	"math"
-	"strings"
+	"time"
 )
 
-var (
-	// CharacterSet consists of 62 characters [0-9][A-Z][a-z].
-	Base         = 62
-	CharacterSet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-)
+func GenShort(shortUrl string) string {
+	ans := ""
+	if shortUrl == "" {
+		//未给定短链接, 通过当前时间的纳秒数生成新的短链接存储
+		temp := time.Now().UnixNano() % int64(math.Pow(62, 6))
+		ans := ""
+		for {
+			if temp == 0 {
+				break
+			}
 
-// Encode returns a base62 representation as
-// string of the given integer number.
-func Encode(num int) string {
-	b := make([]byte, 0)
-	// loop as long the num is bigger than zero
-	for num > 0 {
-		// receive the rest
-		r := math.Mod(float64(num), float64(Base))
-		// devide by Base
-		num /= Base
-		// append chars
-		b = append([]byte{CharacterSet[int(r)]}, b...)
-	}
-	return string(b)
-}
-
-// Decode returns a integer number of a base62 encoded string.
-func Decode(s string) int {
-	var r, pow int
-	// loop through the input
-	for i, v := range s {
-		// convert position to power
-		pow = len(s) - (i + 1)
-		// IndexRune returns -1 if v is not part of CharacterSet.
-		pos := strings.IndexRune(CharacterSet, v)
-		if pos == -1 {
-			logrus.Errorf("invalid character: %s", string(v))
-			return pos
+			now := temp % 62
+			if now >= 0 && now <= 25 { //generate A-Z
+				ans = ans + string(65+now)
+			} else if now >= 26 && now <= 51 { //generate a-z
+				ans = ans + string(71+now)
+			} else if now >= 52 && now <= 61 { //generate 0-9
+				ans = ans + string(now-4)
+			}
+			temp /= 62
 		}
-		// calculate
-		r += pos * int(math.Pow(float64(Base), float64(pow)))
+		return ans
+	} else {
+		for _, s := range shortUrl {
+			if (s <= 57 && s >= 48) || (s <= 90 && s >= 65) || (s <= 122 && s >= 97) {
+				ans = ans + string(s)
+			}
+
+		}
+		return ans
 	}
-	return int(r)
 }

@@ -3,7 +3,6 @@ package controller
 import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
-	"math/rand"
 	"shortlink/dao"
 	"shortlink/model"
 	"time"
@@ -107,12 +106,4 @@ func CleanLogin() {
 			}
 		}
 	}
-}
-func GenShort(short string) string {
-	if short != "" {
-		return short
-	}
-	ts := time.Now().UnixNano()
-	rand.Seed(ts)
-	return Encode(int(ts))
 }
