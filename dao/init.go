@@ -44,7 +44,7 @@ func Init() {
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"error": err}).Error("gorm OPENS MySQL failed")
 	}
-	err = Db.AutoMigrate(&model.User{}, &model.UrlInfo{}, &model.LoginInfo{}, &model.Cookie{})
+	err = Db.AutoMigrate(&model.User{}, &model.UrlInfo{}, &model.LoginInfo{}, &model.Cookie{}, &model.PauseUrl{})
 	if err != nil {
 		logrus.Error("build tables corrupt!\n", err)
 	}

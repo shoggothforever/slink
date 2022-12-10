@@ -40,6 +40,16 @@ type User struct {
 	UpdatedAt time.Time
 	Url       []UrlInfo `gorm:"foreignKey:UserId "`
 }
+
+//用于存储暂停的url
+
+type PauseUrl struct {
+	UserId int    `gorm:"type:int;" form:"user_id" json:"user_id"`
+	UrlId  int    `gorm:"type:int;" form:"url_id" json:"url_id"`
+	Short  string `gorm:"type:varchar(50)" form:"short" json:"short"`
+}
+
+//用于存储验证信息的表
 type Claims struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`

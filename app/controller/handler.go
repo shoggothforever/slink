@@ -27,12 +27,12 @@ func Register(c *gin.Context) {
 		model.CurrentUser = user
 	} else if err == gorm.ErrRegistered {
 		c.JSON(200, gin.H{
-			"code": 400,
+			"code": 403,
 			"msg":  "该用户或者邮箱已存在",
 		})
 	} else {
 		c.JSON(200, gin.H{
-			"code": 400,
+			"code": 403,
 			"msg":  "注册失败",
 		})
 	}
@@ -48,7 +48,7 @@ func Login(c *gin.Context) {
 	dao.Db.Where("name=? AND pwd=?", user.Name, user.Pwd).First(&data)
 	if len(data) == 0 {
 		c.JSON(200, gin.H{
-			"code": 400,
+			"code": 403,
 			"msg":  "登录失败，请输入正确的账户名和密码",
 		})
 	} else {
@@ -194,7 +194,6 @@ func Update(c *gin.Context) {
 	})
 }
 func Delete(c *gin.Context) {
-
 	var url []model.UrlInfo
 	userid := model.CurrentUser.GetId()
 	id := c.PostForm("id")
@@ -211,4 +210,25 @@ func Delete(c *gin.Context) {
 	}
 }
 func Pause(c *gin.Context) {
+	id := c.PostForm("id")
+	user_id := model.CurrentUser.Id
+	var url model.UrlInfo
+	var purl model.PauseUrl
+	url.Short = ""
+	purl.Short = ""
+	dao.Db.Model(&model.UrlInfo{}).Where("id=? and user_id=?", id, user_id).First(&url)
+	dao.Db.Model(&model.PauseUrl{}).Where("url_id=? and user_id=?", id, user_id).First(&purl)
+	if url.Short != "" && purl.Short == "" {
+		var p model.PauseUrl
+		p.UrlId, _ = strconv.Atoi(id)
+		p.UserId = model.CurrentUser.Id
+		p.Short = url.Short
+		dao.Db.Model(&model.PauseUrl{}).Create(p)
+		c.JSON(200, gin.H{"msg": "短链接暂停成功"})
+	} else if url.Short != "" && purl.Short != "" {
+		dao.Db.Model(&model.PauseUrl{}).Where("url_id=? and user_id=?", id, user_id).Delete(&purl)
+		c.JSON(200, gin.H{"msg": "短链接重新启用"})
+	} else {
+		c.JSON(200, gin.H{"msg": "请输入正确的短链接编号"})
+	}
 }

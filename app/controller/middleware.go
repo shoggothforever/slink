@@ -14,11 +14,21 @@ func RedirectShort() gin.HandlerFunc {
 		fmt.Println(short)
 		short = short[1:]
 		var urls []model.UrlInfo
-		dao.Db.Where("short=?", short).Find(&urls)
-		if len(urls) != 0 {
-			c.Redirect(301, urls[0].Origin)
+		var purl model.PauseUrl
+		purl.Short = ""
+		dao.Db.Where("short=?", short).First(&purl)
+		if purl.Short != "" {
+			c.JSON(200, gin.H{
+				"code": 403,
+				"msg":  "短链接已冻结，请解冻后再试",
+			})
 		} else {
-			//fmt.Println("不存在对应的短链接")
+			dao.Db.Where("short=?", short).Find(&urls)
+			if len(urls) != 0 {
+				c.Redirect(301, urls[0].Origin)
+			} else {
+				//c.JSON(200, gin.H{"code": 404, "msg": "请输入正确的短链接"})
+			}
 		}
 		c.Next()
 	}
