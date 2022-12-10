@@ -179,12 +179,11 @@ func Query(c *gin.Context) {
 }
 func Update(c *gin.Context) {
 	var url model.UrlInfo
-	id := model.CurrentUser.GetId()
-	url.Origin = c.PostForm("origin")
-	short := c.PostForm("oldshort")
+	userid := model.CurrentUser.GetId()
+	id := c.PostForm("id")
 	url.Short = GenShort(c.PostForm("newshort"))
 	url.Comment = c.PostForm("comment")
-	dao.Db.Model(model.UrlInfo{}).Where("user_id=? and origin=? and short=?", id, url.Origin, short).Updates(map[string]interface{}{
+	dao.Db.Model(model.UrlInfo{}).Where("user_id=? and id=?", userid, id).Updates(map[string]interface{}{
 		"short":       url.Short,
 		"comment":     url.Comment,
 		"start_time":  time.Now().In(time.Local),
@@ -197,10 +196,9 @@ func Update(c *gin.Context) {
 func Delete(c *gin.Context) {
 
 	var url []model.UrlInfo
-	id := model.CurrentUser.GetId()
-	origin := c.PostForm("origin")
-	short := c.PostForm("short")
-	dao.Db.Where("user_id=? and origin=? and short=?", id, origin, short).Find(&url)
+	userid := model.CurrentUser.GetId()
+	id := c.PostForm("id")
+	dao.Db.Where("user_id=? and id=?", userid, id).Find(&url)
 	if len(url) == 0 {
 		c.JSON(200, model.Response{
 			404, "表中没有该数据",

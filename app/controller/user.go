@@ -47,7 +47,7 @@ func SaveUrl(u *model.UrlInfo) error {
 		logrus.Info("UserId invalid,Please use this service after Login")
 	}
 	u.StartTime = time.Now().In(time.Local)
-	u.ExpireTime = time.Now().In(time.Local).Add(time.Hour * 24)
+	u.ExpireTime = time.Now().In(time.Local).Add(time.Hour * 24) //暂时没有自定义短链接过期时间
 	u.UserId = model.CurrentUser.GetId()
 	if err := dao.Db.Omit("id").Create(u).Error; err != nil {
 		logrus.Error("插入数据失败", err)
