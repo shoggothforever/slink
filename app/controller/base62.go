@@ -27,7 +27,7 @@ func GenShort(shortUrl string) string {
 			}
 			temp /= 62
 		}
-		return ans
+		return "bit.do/" + ans
 	} else {
 		for _, s := range shortUrl {
 			if (s <= 57 && s >= 48) || (s <= 90 && s >= 65) || (s <= 122 && s >= 97) {
@@ -35,6 +35,6 @@ func GenShort(shortUrl string) string {
 			}
 
 		}
-		return ans
+		return "bit.do/" + ans
 	}
 }

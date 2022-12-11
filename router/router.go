@@ -21,7 +21,6 @@ func Router() {
 		r.SetFuncMap(template.FuncMap{
 
 		})
-
 	*/
 	//r.LoadHTMLGlob("htmlFilePath")htmlFilePath="templates/*"解析模板
 	//r.Static("/statics/html/xxx", "./statics/html") //处理静态文件

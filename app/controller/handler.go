@@ -188,14 +188,16 @@ func Create(c *gin.Context) {
 	}
 }
 func Query(c *gin.Context) {
-	var urls []model.UrlInfo
+	var url []model.UrlInfo
 	id := c.PostForm("id")
+	user_id := model.CurrentUser.Id
 	if id == "" {
 		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入需要查找的链接ID"})
 		return
 	}
-	dao.Db.Raw("select * from url_infos where url_infos.user_id=(select id from users where id=?)", id).First(&urls)
-	if len(urls) == 0 {
+	//dao.Db.Raw("select * from url_infos where url_infos.user_id=(select id from users where id=?)", id).First(&urls)
+	dao.Db.Model(&model.UrlInfo{}).Where("user_id=? and id=?", user_id, id).First(&url)
+	if len(url) == 0 {
 		logrus.Info("no such document")
 		c.JSON(200, model.Response{
 			400,
@@ -204,7 +206,7 @@ func Query(c *gin.Context) {
 	} else {
 		c.JSON(200, model.QueryResponse{
 			model.Response{200, "查找到信息"},
-			urls,
+			url,
 		})
 	}
 }
