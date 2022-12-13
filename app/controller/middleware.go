@@ -18,7 +18,7 @@ func RedirectShort() gin.HandlerFunc {
 		if len(urls) != 0 {
 			c.Redirect(301, urls[0].Origin)
 		} else {
-			fmt.Println("不存在对应的短链接")
+			//fmt.Println("不存在对应的短链接")
 		}
 		c.Next()
 	}
@@ -36,13 +36,24 @@ func AuthLogin() gin.HandlerFunc {
 		if model.CurrentUser.Id == model.NOTLOGIN {
 			c.AbortWithStatusJSON(404, model.Response{404, "请登录后再试"})
 		} else {
-			//if(c.PostForm("token")!=model.AuthToken){
-			//	c.JSON(200, model.Response{404, "验证错误"})
-			//	c.AbortWithStatus(404)
-			//}
-
 			c.Next()
 		}
+	}
+}
+func AuthJwt() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		jwt := c.Query("jwt")
+		if jwt != model.AuthJwt {
+			c.Set("AUthInfo", "Failed!")
+			c.AbortWithStatusJSON(200, gin.H{
+				"code": 401, "msg": "请输入正确的信息",
+			})
+			return
+		} else {
+			c.Set("AuthInfo", "Success!")
+			c.Next()
+		}
+
 	}
 }
 

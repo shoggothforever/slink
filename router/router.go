@@ -14,7 +14,8 @@ import (
 )
 
 func Router() {
-	r := gin.Default()
+	r := gin.New()
+	r.Use(gin.Recovery())
 	/*
 		添加前端需求的方法
 		r.SetFuncMap(template.FuncMap{
@@ -59,15 +60,15 @@ func Router() {
 	})
 	userRoute := r.Group("/user")
 	{
-		userRoute.POST("/register", controller.Register, controller.Login)
+		userRoute.POST("/register", controller.Register)
 		userRoute.POST("/login", controller.Login)
-		userRoute.POST("/logout", controller.AuthLogin(), controller.Logout)
-		userRoute.GET("/info", controller.AuthLogin(), controller.GetInfo)
-		userRoute.GET("/record/get", controller.AuthLogin(), controller.GetLoginInfo)
-		userRoute.GET("/url/get", controller.AuthLogin(), controller.GetUrl)
+		userRoute.POST("/logout", controller.AuthLogin(), controller.AuthJwt(), controller.Logout)
+		userRoute.GET("/info", controller.AuthLogin(), controller.AuthJwt(), controller.GetInfo)
+		userRoute.GET("/record/get", controller.AuthLogin(), controller.AuthJwt(), controller.GetLoginInfo)
+		userRoute.GET("/url/get", controller.AuthLogin(), controller.AuthJwt(), controller.GetUrl)
 
 	}
-	urlRoute := r.Group("/url", controller.AuthLogin())
+	urlRoute := r.Group("/url", controller.AuthLogin(), controller.AuthJwt())
 	{
 		urlRoute.POST("/create", controller.Create)
 		urlRoute.POST("/query", controller.Query)
@@ -78,7 +79,9 @@ func Router() {
 	}
 
 	//平滑地关机
-	go controller.Clean()
+	go controller.CleanUrl()
+	go controller.CleanJwt()
+	go controller.CleanLogin()
 	quit := make(chan os.Signal)
 	signal.Notify(quit, os.Interrupt)
 	<-quit

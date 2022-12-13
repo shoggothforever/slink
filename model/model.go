@@ -41,13 +41,13 @@ type User struct {
 	Url       []UrlInfo `gorm:"foreignKey:UserId "`
 }
 type Claims struct {
-	Id  string `json:"id"`
-	Psw string `json:"psw"`
+	Id   int    `json:"id"`
+	Name string `json:"name"`
 	jwt.StandardClaims
 }
 
 var AuthClaims *Claims
-var AuthToken string
+var AuthJwt string
 
 /*
 记录当前登录用户信息

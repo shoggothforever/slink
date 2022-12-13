@@ -1,12 +1,12 @@
 package controller
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"shortlink/dao"
 	"shortlink/model"
+	"strconv"
 	"time"
 )
 
@@ -54,21 +54,20 @@ func Login(c *gin.Context) {
 	} else {
 		model.CurrentUser = data[0]
 		if err := SaveLogin(&login); err == nil {
-
-			c.JSON(200, model.LoginResponse{
-				model.Response{200, "登陆成功"},
-				model.CurrentUser.GetId(),
+			SaveJwt(model.CurrentUser.Id, model.CurrentUser.Name)
+			c.JSON(200, gin.H{
+				"code": 200,
+				"msg":  "登陆成功",
+				"id":   model.CurrentUser.GetId(),
+				"jwt":  model.AuthJwt,
 			})
 		} else {
-			model.CurrentUser = data[0]
 			c.JSON(200, model.LoginResponse{
 				model.Response{201, "登陆成功,写入数据失败"},
 				model.CurrentUser.GetId(),
 			})
 		}
-		SaveJwt(model.CurrentUser.Name, model.CurrentUser.Pwd)
-		fmt.Println(model.AuthClaims)
-		fmt.Println(model.AuthToken)
+
 	}
 }
 
@@ -96,7 +95,12 @@ func GetInfo(c *gin.Context) {
 func GetLoginInfo(c *gin.Context) {
 	var infos []model.LoginRecord
 	id := model.CurrentUser.GetId()
-	dao.Db.Raw("select id,user_id,login_at from login_infos where user_id=? limit 0,10", id).Find(&infos)
+	page, _ := strconv.Atoi(c.Query("page"))
+	if page == 0 {
+		page = 1
+	}
+	page = (page - 1) * 10
+	dao.Db.Raw("select id,user_id,login_at from login_infos where user_id=? limit ?,10", id, page).Find(&infos)
 	if len(infos) == 0 {
 		logrus.Info("no login document")
 		c.JSON(200, model.Response{
@@ -115,7 +119,12 @@ func GetLoginInfo(c *gin.Context) {
 func GetUrl(c *gin.Context) {
 	var urls []model.UrlInfo
 	id := model.CurrentUser.GetId()
-	dao.Db.Raw("select * from url_infos where user_id=(select id from users where id=?)", id).Find(&urls)
+	page, _ := strconv.Atoi(c.Query("page"))
+	if page == 0 {
+		page = 1
+	}
+	page = (page - 1) * 10
+	dao.Db.Raw("select * from url_infos where user_id=(select id from users where id=?) limit ?,10", id, page).Find(&urls)
 	if len(urls) == 0 {
 		logrus.Info("no such document")
 		c.JSON(200, model.Response{
@@ -150,7 +159,6 @@ func Create(c *gin.Context) {
 			"msg":  "链接信息存储失败",
 		})
 	}
-
 }
 func Query(c *gin.Context) {
 	var urls []model.UrlInfo
@@ -205,5 +213,4 @@ func Delete(c *gin.Context) {
 	}
 }
 func Pause(c *gin.Context) {
-
 }

@@ -6,10 +6,12 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"shortlink/model"
+	"sync"
 )
 
 var Db *gorm.DB
 var JwtSecret string
+var Lock sync.Mutex
 
 /*
 * @brief init the config of viper and database
@@ -42,7 +44,7 @@ func Init() {
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"error": err}).Error("gorm OPENS MySQL failed")
 	}
-	err = Db.AutoMigrate(&model.User{}, &model.UrlInfo{}, model.LoginInfo{})
+	err = Db.AutoMigrate(&model.User{}, &model.UrlInfo{}, &model.LoginInfo{}, &model.Cookie{})
 	if err != nil {
 		logrus.Error("build tables corrupt!\n", err)
 	}

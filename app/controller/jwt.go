@@ -10,19 +10,19 @@ import (
 /*
 传入用户的id，密码作为生成jwt的参数
 */
-func GenerateJwt(id, pwd string) (string, error) {
+func GenerateJwt(user_id int, name string) (string, error) {
 	nowTime := time.Now().In(time.Local)
 	expireTime := nowTime.Add(dao.ExpireTime)
 	claims := model.Claims{
-		id,
-		pwd,
+		user_id,
+		name,
 		jwt.StandardClaims{
 			ExpiresAt: expireTime.Unix(),
 			Issuer:    model.CurrentUser.Name,
 		},
 	}
 	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	token, err := tokenClaims.SignedString([]byte(model.CurrentUser.Name))
+	token, err := tokenClaims.SignedString([]byte(name))
 	return token, err
 }
 
@@ -40,8 +40,15 @@ func ParseToken(token string) (*model.Claims, error) {
 	}
 	return nil, err
 }
-func SaveJwt(id, pwd string) {
+func SaveJwt(id int, name string) {
 	dao.ExpireTime = 4 * time.Hour
-	model.AuthToken, _ = GenerateJwt(id, pwd)
-	model.AuthClaims, _ = ParseToken(model.AuthToken)
+	model.AuthJwt, _ = GenerateJwt(id, name)
+	model.AuthClaims, _ = ParseToken(model.AuthJwt)
+	var cookie model.Cookie
+	cookie.UserId = id
+	cookie.Jwt = model.AuthJwt
+	cookie.CreatedAt = time.Now().In(time.Local)
+	var del model.Cookie
+	dao.Db.Model(&cookie).Where("user_id=?", id).Delete(&del)
+	dao.Db.Model(&cookie).Create(&cookie)
 }
