@@ -53,7 +53,7 @@ var AuthJwt string
 /*
 记录当前登录用户信息
 */
-var CurrentUser User
+var DefaultUser User
 var NOTLOGIN int = -1
 
 func (u User) TableName() string {

@@ -36,8 +36,6 @@ func Register(c *gin.Context) {
 			model.Response{200, "注册成功"},
 			user,
 		})
-		model.CurrentUser = user
-		c.Set("user", user)
 	} else if err == gorm.ErrRegistered {
 		c.JSON(200, gin.H{
 			"code": 403,
@@ -75,35 +73,24 @@ func Login(c *gin.Context) {
 			"msg":  "登录失败，请输入正确的账户名和密码",
 		})
 	} else {
-
-		c.Set("user", data[0])
-		model.CurrentUser = getcuruser(c)
-		c.JSON(200, gin.H{
-			"user": model.CurrentUser,
-		})
-		if err := SaveLogin(&login); err == nil {
-			SaveJwt(model.CurrentUser.Id, model.CurrentUser.Name)
+		if err := SaveLogin(&login, data[0].Id); err == nil {
+			cur := data[0]
+			SaveJwt(cur.Id, cur.Name)
 			c.JSON(200, gin.H{
 				"code": 200,
 				"msg":  "登陆成功",
-				"id":   model.CurrentUser.GetId(),
+				"id":   cur.GetId(),
 				"jwt":  model.AuthJwt,
 			})
-		} else {
-			c.JSON(200, model.LoginResponse{
-				model.Response{201, "登陆成功,写入数据失败"},
-				model.CurrentUser.GetId(),
-			})
 		}
-
 	}
 }
 
 // logout
 func Logout(c *gin.Context) {
-
-	model.CurrentUser = model.User{}
-	model.CurrentUser.Id = -1
+	var cur model.User
+	cur.Id = -1
+	c.Set("user", cur)
 	c.JSON(200, model.Response{
 		200, "退出成功",
 	})
@@ -111,11 +98,12 @@ func Logout(c *gin.Context) {
 
 // info
 func GetInfo(c *gin.Context) {
+	cur, _ := getcuruser(c)
 	c.JSON(200, model.InfoResponse{
 		model.Response{200, "当前用户信息:"},
-		model.CurrentUser.GetId(),
-		model.CurrentUser.Name,
-		model.CurrentUser.Email,
+		cur.GetId(),
+		cur.Name,
+		cur.Email,
 	})
 
 }
@@ -123,7 +111,8 @@ func GetInfo(c *gin.Context) {
 // record/get
 func GetLoginInfo(c *gin.Context) {
 	var infos []model.LoginRecord
-	id := model.CurrentUser.GetId()
+	cur, _ := getcuruser(c)
+	id := cur.GetId()
 	page := 0
 	page, _ = strconv.Atoi(c.Query("page"))
 	if page == 0 {
@@ -147,8 +136,9 @@ func GetLoginInfo(c *gin.Context) {
 
 // url/get
 func GetUrl(c *gin.Context) {
+	cur, _ := getcuruser(c)
 	var urls []model.UrlInfo
-	id := model.CurrentUser.GetId()
+	id := cur.GetId()
 	page := 0
 	page, _ = strconv.Atoi(c.Query("page"))
 	if page == 0 {
@@ -174,6 +164,7 @@ func GetUrl(c *gin.Context) {
 handler for /url
 */
 func Create(c *gin.Context) {
+	cur, _ := getcuruser(c)
 	var url model.UrlInfo
 	url.Origin = c.PostForm("origin")
 	if url.Origin == "" {
@@ -182,7 +173,7 @@ func Create(c *gin.Context) {
 	}
 	url.Short = GenShort(c.PostForm("short"))
 	url.Comment = c.PostForm("comment")
-	if err := SaveUrl(&url); err == nil {
+	if err := SaveUrl(&url, cur.Id); err == nil {
 		c.JSON(200, gin.H{
 			"code":    200,
 			"msg":     "链接信息存储成功",
@@ -196,9 +187,10 @@ func Create(c *gin.Context) {
 	}
 }
 func Query(c *gin.Context) {
+	cur, _ := getcuruser(c)
 	var url []model.UrlInfo
 	id := c.PostForm("id")
-	user_id := model.CurrentUser.Id
+	user_id := cur.Id
 	if id == "" {
 		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入需要查找的链接ID"})
 		return
@@ -219,9 +211,10 @@ func Query(c *gin.Context) {
 	}
 }
 func Update(c *gin.Context) {
+	cur, _ := getcuruser(c)
 	var url model.UrlInfo
 	url.Origin = ""
-	userid := model.CurrentUser.GetId()
+	userid := cur.GetId()
 	id := c.PostForm("id")
 	if id == "" {
 		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入需要查找的链接ID"})
@@ -248,8 +241,9 @@ func Update(c *gin.Context) {
 
 }
 func Delete(c *gin.Context) {
+	cur, _ := getcuruser(c)
 	var url []model.UrlInfo
-	userid := model.CurrentUser.GetId()
+	userid := cur.GetId()
 	id := c.PostForm("id")
 	if id == "" {
 		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入需要删除的链接ID"})
@@ -268,12 +262,13 @@ func Delete(c *gin.Context) {
 	}
 }
 func Pause(c *gin.Context) {
+	cur, _ := getcuruser(c)
 	id := c.PostForm("id")
 	if id == "" {
 		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入需要冻结的链接ID"})
 		return
 	}
-	user_id := model.CurrentUser.Id
+	user_id := cur.Id
 	var url model.UrlInfo
 	var purl model.PauseUrl
 	url.Short = ""
@@ -283,7 +278,7 @@ func Pause(c *gin.Context) {
 	if url.Short != "" && purl.Short == "" {
 		var p model.PauseUrl
 		p.UrlId, _ = strconv.Atoi(id)
-		p.UserId = model.CurrentUser.Id
+		p.UserId = user_id
 		p.Short = url.Short
 		dao.Db.Model(&model.PauseUrl{}).Create(p)
 		c.JSON(200, gin.H{"msg": "短链接暂停成功"})

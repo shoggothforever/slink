@@ -50,5 +50,6 @@ func Init() {
 	if err != nil {
 		logrus.Error("build tables corrupt!\n", err)
 	}
-	model.CurrentUser.Id = model.NOTLOGIN
+	model.DefaultUser.Id = model.NOTLOGIN
+	model.DefaultUser.Name = "origin"
 }

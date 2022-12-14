@@ -20,7 +20,7 @@ func GenerateJwt(user_id int, name string) (string, error) {
 		name,
 		jwt.StandardClaims{
 			ExpiresAt: expireTime.Unix(),
-			Issuer:    model.CurrentUser.Name,
+			Issuer:    model.DefaultUser.Name,
 			Subject:   "login jwt",
 		},
 	}
@@ -31,7 +31,7 @@ func GenerateJwt(user_id int, name string) (string, error) {
 
 func ParseToken(token string) (*model.Claims, error) {
 	tokenClaims, err := jwt.ParseWithClaims(token, &model.Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(model.CurrentUser.Name), nil
+		return []byte(model.DefaultUser.Name), nil
 	})
 	if err != nil {
 		return nil, err

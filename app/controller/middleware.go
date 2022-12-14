@@ -35,24 +35,34 @@ func RedirectShort() gin.HandlerFunc {
 }
 
 //使用中间件实现鉴权
-func AuthLogin() gin.HandlerFunc {
-
-	return func(c *gin.Context) {
-		if model.CurrentUser.Id == model.NOTLOGIN {
-			c.AbortWithStatusJSON(404, model.Response{404, "请登录后再试"})
-		} else {
-			c.Next()
-		}
-	}
-}
 func AuthJwt() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		jwt := c.GetHeader("Authorization")
-		jwt = jwt[7:] //如果在PostMan中使用 Bearer Token 会在jwt前加上bearer: 前缀
-		if jwt != model.AuthJwt {
+		if len(jwt) > 7 {
+			jwt = jwt[7:]
+		} else {
 			c.Set("AUthInfo", "Failed!")
 			c.AbortWithStatusJSON(200, gin.H{
-				"code": 401, "msg": "请输入正确的信息",
+				"code": 403, "msg": "请登录后再试",
+			})
+			return
+		} //如果在PostMan中使用 Bearer Token 会在jwt前加上bearer: 前缀
+		var cur model.User
+		dao.Db.Raw("select * from users where id =(select user_id from cookies where user_id=id)").First(&cur)
+		c.Set("user", cur)
+		var authjwt string
+		dao.Db.Raw("select jwt from cookies where user_id = ?", cur.Id).First(&authjwt)
+		if authjwt == "" {
+			c.Set("AUthInfo", "Failed!")
+			c.AbortWithStatusJSON(200, gin.H{
+				"code": 403, "msg": "请登录后再试",
+			})
+			return
+		}
+		if jwt != authjwt {
+			c.Set("AUthInfo", "Failed!")
+			c.AbortWithStatusJSON(200, gin.H{
+				"code": 403, "msg": "请输入正确的信息",
 			})
 			return
 		} else {
@@ -62,17 +72,3 @@ func AuthJwt() gin.HandlerFunc {
 
 	}
 }
-
-//func CookieMiddleWare() gin.HandlerFunc {
-//	return func(c *gin.Context) {
-//		cookieValue, err := c.Cookie("Jwt")
-//		if err != nil {
-//			//c.AbortWithStatusJSON(403, gin.H{"message": "get cookie failed..."})
-//			fmt.Printf("err happened :%v\n", err)
-//			code := _
-//			c.SetCookie("Jwt", code, 3600*24, "/", "http://localhost:9090", false, false)
-//		}
-//		fmt.Println(cookieValue)
-//		c.Next()
-//	}
-//}

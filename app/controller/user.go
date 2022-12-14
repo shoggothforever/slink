@@ -37,9 +37,9 @@ func SaveUser(u *model.User) error {
 
 	return nil
 }
-func SaveUrl(u *model.UrlInfo) error {
+func SaveUrl(u *model.UrlInfo, userid int) error {
 	var dupl []model.UrlInfo
-	dao.Db.Where("user_id=? and origin=? and short=?", model.CurrentUser.GetId(), u.Origin, u.Short).First(&dupl)
+	dao.Db.Where("user_id=? and origin=? and short=?", userid, u.Origin, u.Short).First(&dupl)
 	if len(dupl) != 0 {
 		logrus.Info("数据已存在")
 		*u = dupl[0]
@@ -52,16 +52,16 @@ func SaveUrl(u *model.UrlInfo) error {
 	}
 	u.StartTime = time.Now().In(time.Local)
 	u.ExpireTime = time.Now().In(time.Local).Add(time.Hour * 24) //暂时没有自定义短链接过期时间
-	u.UserId = model.CurrentUser.GetId()
+	u.UserId = userid
 	if err := dao.Db.Omit("id").Create(u).Error; err != nil {
 		logrus.Error("插入数据失败", err)
 		return gorm.ErrNotImplemented
 	}
 	return nil
 }
-func SaveLogin(l *model.LoginInfo) error {
+func SaveLogin(l *model.LoginInfo, userid int) error {
 	l.LoginAt = time.Now().In(time.Local)
-	l.UserId = model.CurrentUser.Id
+	l.UserId = userid
 	if err := dao.Db.Omit("id").Create(&l).Error; err != nil {
 		logrus.Error("插入数据失败", err)
 		return gorm.ErrNotImplemented
@@ -112,7 +112,10 @@ func CleanLogin() {
 		}
 	}
 }
-func getcuruser(c *gin.Context) model.User {
-	tmpuser, _ := c.Get("user")
-	return tmpuser.(model.User)
+func getcuruser(c *gin.Context) (model.User, bool) {
+	tmpuser, ok := c.Get("user")
+	if ok != false {
+		return tmpuser.(model.User), ok
+	}
+	return model.User{}, ok
 }

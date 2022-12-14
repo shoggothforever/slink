@@ -61,13 +61,12 @@ func Router() {
 	{
 		userRoute.POST("/register", controller.Register)
 		userRoute.POST("/login", controller.Login)
-		userRoute.POST("/logout", controller.AuthLogin(), controller.AuthJwt(), controller.Logout)
-		userRoute.GET("/info", controller.AuthLogin(), controller.AuthJwt(), controller.GetInfo)
-		userRoute.GET("/record/get", controller.AuthLogin(), controller.AuthJwt(), controller.GetLoginInfo)
-		userRoute.GET("/url/get", controller.AuthLogin(), controller.AuthJwt(), controller.GetUrl)
-
+		userRoute.POST("/logout", controller.AuthJwt(), controller.Logout)
+		userRoute.GET("/info", controller.AuthJwt(), controller.GetInfo)
+		userRoute.GET("/record/get", controller.AuthJwt(), controller.GetLoginInfo)
+		userRoute.GET("/url/get", controller.AuthJwt(), controller.GetUrl)
 	}
-	urlRoute := r.Group("/url", controller.AuthLogin(), controller.AuthJwt())
+	urlRoute := r.Group("/url", controller.AuthJwt())
 	{
 		urlRoute.POST("/create", controller.Create)
 		urlRoute.POST("/query", controller.Query)
