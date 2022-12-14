@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/gin-gonic/contrib v0.0.0-20221130124618-7e01895a63f2
 	github.com/gin-gonic/gin v1.8.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/viper v1.14.0

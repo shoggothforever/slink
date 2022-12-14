@@ -25,6 +25,10 @@ func SaveUser(u *model.User) error {
 		*u = user[0]
 		return gorm.ErrRegistered
 	}
+	/*
+		给用户密码进行MD5加密
+	*/
+	u.Pwd = messagedigest5(u.Pwd)
 	if err := dao.Db.Omit("id").Create(u).Error; err != nil {
 		logrus.Error("插入数据失败", err)
 		return gorm.ErrNotImplemented

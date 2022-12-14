@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"crypto/md5"
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"shortlink/dao"
 	"shortlink/model"
@@ -51,4 +53,8 @@ func SaveJwt(id int, name string) {
 	var del model.Cookie
 	dao.Db.Model(&cookie).Where("user_id=?", id).Delete(&del)
 	dao.Db.Model(&cookie).Create(&cookie)
+}
+func messagedigest5(s string) string {
+	data := md5.Sum([]byte(s + dao.Salt))
+	return fmt.Sprintf("%x", data)
 }

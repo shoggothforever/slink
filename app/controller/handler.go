@@ -58,7 +58,8 @@ func Login(c *gin.Context) {
 	if user.Name == "" {
 		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入用户名"})
 	}
-	user.Pwd = c.PostForm("pwd")
+	user.Pwd = messagedigest5(c.PostForm("pwd"))
+
 	if user.Name == "" {
 		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入密码"})
 	}

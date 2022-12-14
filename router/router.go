@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -14,24 +15,20 @@ import (
 )
 
 func Router() {
-	r := gin.New()
-	r.Use(gin.Recovery())
+	htmlFilePath := "templates/*.html"
+	f, _ := os.Create("sl.log")
+	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
+	r := gin.Default()
 	/*
 		添加前端需求的方法
 		r.SetFuncMap(template.FuncMap{
 
 		})
 	*/
-	//r.LoadHTMLGlob("htmlFilePath")htmlFilePath="templates/*"解析模板
-	//r.Static("/statics/html/xxx", "./statics/html") //处理静态文件
-	//r.NoRoute(func(c *gin.Context) {
-	//	c.HTML(http.StatusNotFound, "views/404.html", nil)
-	//})
-	//r.NoRoute(func(c *gin.Context) {//重定向使用路由实现，根据form中的短链从数据库中获取原链
-	//	c.Redirect(http.StatusMovedPermanently, "https://www.baidu.com")
-	//})
+	r.LoadHTMLGlob(htmlFilePath)                         //htmlFilePath="templates/*"解析模板
+	r.Static("static/html/static", "./templates/static") //处理静态文件
 	srv := &http.Server{
-		Addr:    ":9090",
+		Addr:    ":3000",
 		Handler: r,
 	}
 	go func() {
@@ -41,8 +38,9 @@ func Router() {
 	}()
 	r.Use(controller.RedirectShort())
 	r.GET("/", func(c *gin.Context) {
-		time.Sleep(5 * time.Second)
-		c.String(http.StatusOK, "Welcome Gin Server")
+		c.HTML(200, "index.html", nil)
+		//time.Sleep(5 * time.Second)
+		//c.String(http.StatusOK, "Welcome Gin Server")
 	})
 	r.GET("/exit", func(c *gin.Context) {
 		srv.Shutdown(context.Background())

@@ -11,6 +11,7 @@ import (
 
 var Db *gorm.DB
 var JwtSecret string
+var Salt string
 var Lock sync.Mutex
 
 /*
@@ -36,6 +37,7 @@ func Init() {
 			logrus.Error("found error in config file\n", ok)
 		}
 	}
+	Salt = Config.GetString("Salt")
 	jwtInfo := Config.GetStringMapString("Jwt")
 	JwtSecret = jwtInfo["secret"]
 	loginInfo := Config.GetStringMapString("mysql")
