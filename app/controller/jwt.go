@@ -21,6 +21,7 @@ func GenerateJwt(user_id int, name string) (string, error) {
 		jwt.StandardClaims{
 			ExpiresAt: expireTime.Unix(),
 			Issuer:    model.CurrentUser.Name,
+			Subject:   "login jwt",
 		},
 	}
 	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

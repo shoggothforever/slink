@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/signal"
 	"shortlink/app/controller"
+	"shortlink/model"
 	"time"
 )
 
@@ -38,6 +39,7 @@ func Router() {
 	}()
 	r.Use(controller.RedirectShort())
 	r.GET("/", func(c *gin.Context) {
+		c.Set("userid", model.NOTLOGIN)
 		c.HTML(200, "index.html", nil)
 		//time.Sleep(5 * time.Second)
 		//c.String(http.StatusOK, "Welcome Gin Server")

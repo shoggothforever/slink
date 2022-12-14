@@ -37,6 +37,7 @@ func Register(c *gin.Context) {
 			user,
 		})
 		model.CurrentUser = user
+		c.Set("user", user)
 	} else if err == gorm.ErrRegistered {
 		c.JSON(200, gin.H{
 			"code": 403,
@@ -74,7 +75,12 @@ func Login(c *gin.Context) {
 			"msg":  "登录失败，请输入正确的账户名和密码",
 		})
 	} else {
-		model.CurrentUser = data[0]
+
+		c.Set("user", data[0])
+		model.CurrentUser = getcuruser(c)
+		c.JSON(200, gin.H{
+			"user": model.CurrentUser,
+		})
 		if err := SaveLogin(&login); err == nil {
 			SaveJwt(model.CurrentUser.Id, model.CurrentUser.Name)
 			c.JSON(200, gin.H{
@@ -95,6 +101,7 @@ func Login(c *gin.Context) {
 
 // logout
 func Logout(c *gin.Context) {
+
 	model.CurrentUser = model.User{}
 	model.CurrentUser.Id = -1
 	c.JSON(200, model.Response{

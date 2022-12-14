@@ -5,7 +5,9 @@ import (
 	"shortlink/router"
 )
 
-func main() {
+func init() {
 	dao.Init()
+}
+func main() {
 	router.Router()
 }

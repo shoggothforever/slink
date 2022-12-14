@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"shortlink/dao"
@@ -110,4 +111,8 @@ func CleanLogin() {
 			}
 		}
 	}
+}
+func getcuruser(c *gin.Context) model.User {
+	tmpuser, _ := c.Get("user")
+	return tmpuser.(model.User)
 }

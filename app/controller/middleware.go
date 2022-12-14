@@ -34,14 +34,9 @@ func RedirectShort() gin.HandlerFunc {
 	}
 }
 
-//使用中间件实现赋值
-func ADDInfo() gin.HandlerFunc {
-	return func(c *gin.Context) {
-	}
-}
-
 //使用中间件实现鉴权
 func AuthLogin() gin.HandlerFunc {
+
 	return func(c *gin.Context) {
 		if model.CurrentUser.Id == model.NOTLOGIN {
 			c.AbortWithStatusJSON(404, model.Response{404, "请登录后再试"})
@@ -52,7 +47,8 @@ func AuthLogin() gin.HandlerFunc {
 }
 func AuthJwt() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		jwt := c.Query("jwt")
+		jwt := c.GetHeader("Authorization")
+		jwt = jwt[7:] //如果在PostMan中使用 Bearer Token 会在jwt前加上bearer: 前缀
 		if jwt != model.AuthJwt {
 			c.Set("AUthInfo", "Failed!")
 			c.AbortWithStatusJSON(200, gin.H{
