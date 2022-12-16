@@ -66,7 +66,7 @@ func Login(c *gin.Context) {
 		return
 	}
 	var data []model.User
-	dao.Db.Where("name=? AND pwd=?", user.Name, user.Pwd).First(&data)
+	dao.Getdb().Where("name=? AND pwd=?", user.Name, user.Pwd).First(&data)
 	if len(data) == 0 {
 		c.JSON(200, gin.H{
 			"code": 403,
@@ -119,7 +119,7 @@ func GetLoginInfo(c *gin.Context) {
 		page = 1
 	}
 	page = (page - 1) * 10
-	dao.Db.Raw("select id,user_id,login_at from login_infos where user_id=? limit ?,10", id, page).Find(&infos)
+	dao.Getdb().Raw("select id,user_id,login_at from login_infos where user_id=? limit ?,10", id, page).Find(&infos)
 	if len(infos) == 0 {
 		logrus.Info("no login document")
 		c.JSON(200, model.Response{
@@ -145,7 +145,7 @@ func GetUrl(c *gin.Context) {
 		page = 1
 	}
 	page = (page - 1) * 10
-	dao.Db.Raw("select * from url_infos where user_id=(select id from users where id=?) limit ?,10", id, page).Find(&urls)
+	dao.Getdb().Raw("select * from url_infos where user_id=(select id from users where id=?) limit ?,10", id, page).Find(&urls)
 	if len(urls) == 0 {
 		logrus.Info("no such document")
 		c.JSON(200, model.Response{
@@ -195,8 +195,8 @@ func Query(c *gin.Context) {
 		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入需要查找的链接ID"})
 		return
 	}
-	//dao.Db.Raw("select * from url_infos where url_infos.user_id=(select id from users where id=?)", id).First(&urls)
-	dao.Db.Model(&model.UrlInfo{}).Where("user_id=? and id=?", user_id, id).First(&url)
+	//dao.Getdb().Raw("select * from url_infos where url_infos.user_id=(select id from users where id=?)", id).First(&urls)
+	dao.Getdb().Model(&model.UrlInfo{}).Where("user_id=? and id=?", user_id, id).First(&url)
 	if len(url) == 0 {
 		logrus.Info("no such document")
 		c.JSON(200, model.Response{
@@ -222,9 +222,9 @@ func Update(c *gin.Context) {
 	}
 	url.Short = GenShort(c.PostForm("newshort"))
 	url.Comment = c.PostForm("comment")
-	dao.Db.Model(model.UrlInfo{}).Where("user_id=? and id=?", userid, id).First(&url)
+	dao.Getdb().Model(model.UrlInfo{}).Where("user_id=? and id=?", userid, id).First(&url)
 	if url.Origin != "" {
-		dao.Db.Model(url).Updates(map[string]interface{}{
+		dao.Getdb().Model(url).Updates(map[string]interface{}{
 			"short":       url.Short,
 			"comment":     url.Comment,
 			"start_time":  time.Now().In(time.Local),
@@ -249,13 +249,13 @@ func Delete(c *gin.Context) {
 		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入需要删除的链接ID"})
 		return
 	}
-	dao.Db.Where("user_id=? and id=?", userid, id).Find(&url)
+	dao.Getdb().Where("user_id=? and id=?", userid, id).Find(&url)
 	if len(url) == 0 {
 		c.JSON(200, model.Response{
 			404, "表中没有该数据",
 		})
 	} else {
-		dao.Db.Model(model.UrlInfo{}).Delete(&url)
+		dao.Getdb().Model(model.UrlInfo{}).Delete(&url)
 		c.JSON(200, model.UpdateResponse{
 			model.Response{200, "删除成功"},
 		})
@@ -273,17 +273,17 @@ func Pause(c *gin.Context) {
 	var purl model.PauseUrl
 	url.Short = ""
 	purl.Short = ""
-	dao.Db.Model(&model.UrlInfo{}).Where("id=? and user_id=?", id, user_id).First(&url)
-	dao.Db.Model(&model.PauseUrl{}).Where("url_id=? and user_id=?", id, user_id).First(&purl)
+	dao.Getdb().Model(&model.UrlInfo{}).Where("id=? and user_id=?", id, user_id).First(&url)
+	dao.Getdb().Model(&model.PauseUrl{}).Where("url_id=? and user_id=?", id, user_id).First(&purl)
 	if url.Short != "" && purl.Short == "" {
 		var p model.PauseUrl
 		p.UrlId, _ = strconv.Atoi(id)
 		p.UserId = user_id
 		p.Short = url.Short
-		dao.Db.Model(&model.PauseUrl{}).Create(p)
+		dao.Getdb().Model(&model.PauseUrl{}).Create(p)
 		c.JSON(200, gin.H{"msg": "短链接暂停成功"})
 	} else if url.Short != "" && purl.Short != "" {
-		dao.Db.Model(&model.PauseUrl{}).Where("url_id=? and user_id=?", id, user_id).Delete(&purl)
+		dao.Getdb().Model(&model.PauseUrl{}).Where("url_id=? and user_id=?", id, user_id).Delete(&purl)
 		c.JSON(200, gin.H{"msg": "短链接重新启用"})
 	} else {
 		c.JSON(200, gin.H{"msg": "请输入正确的短链接编号"})

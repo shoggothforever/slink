@@ -89,5 +89,4 @@ func Router() {
 		log.Fatal("Server Shutdown:", err)
 	}
 	log.Println("Server exiting")
-	//r.Run(":9090")
 }

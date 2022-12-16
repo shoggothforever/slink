@@ -25,13 +25,13 @@ func GenerateJwt(user_id int, name string) (string, error) {
 		},
 	}
 	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	token, err := tokenClaims.SignedString([]byte(name))
+	token, err := tokenClaims.SignedString([]byte(dao.JwtSecret))
 	return token, err
 }
 
 func ParseToken(token string) (*model.Claims, error) {
 	tokenClaims, err := jwt.ParseWithClaims(token, &model.Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(model.DefaultUser.Name), nil
+		return []byte(dao.JwtSecret), nil
 	})
 	if err != nil {
 		return nil, err
@@ -52,8 +52,8 @@ func SaveJwt(id int, name string) {
 	cookie.Jwt = model.AuthJwt
 	cookie.CreatedAt = time.Now().In(time.Local)
 	var del model.Cookie
-	dao.Db.Model(&cookie).Where("user_id=?", id).Delete(&del)
-	dao.Db.Model(&cookie).Create(&cookie)
+	dao.Getdb().Model(&cookie).Where("user_id=?", id).Delete(&del)
+	dao.Getdb().Model(&cookie).Create(&cookie)
 }
 func messagedigest5(s string) string {
 	data := md5.Sum([]byte(s + dao.Salt))

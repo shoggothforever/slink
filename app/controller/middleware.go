@@ -16,14 +16,14 @@ func RedirectShort() gin.HandlerFunc {
 		var urls []model.UrlInfo
 		var purl model.PauseUrl
 		purl.Short = ""
-		dao.Db.Where("short=?", short).First(&purl)
+		dao.Getdb().Where("short=?", short).First(&purl)
 		if purl.Short != "" {
 			c.JSON(200, gin.H{
 				"code": 403,
 				"msg":  "短链接已冻结，请解冻后再试",
 			})
 		} else {
-			dao.Db.Where("short=?", short).Find(&urls)
+			dao.Getdb().Where("short=?", short).Find(&urls)
 			if len(urls) != 0 {
 				c.Redirect(301, urls[0].Origin)
 			} else {
@@ -48,10 +48,10 @@ func AuthJwt() gin.HandlerFunc {
 			return
 		} //如果在PostMan中使用 Bearer Token 会在jwt前加上bearer: 前缀
 		var cur model.User
-		dao.Db.Raw("select * from users where id =(select user_id from cookies where user_id=id)").First(&cur)
+		dao.Getdb().Raw("select * from users where id =(select user_id from cookies where user_id=id)").First(&cur)
 		c.Set("user", cur)
 		var authjwt string
-		dao.Db.Raw("select jwt from cookies where user_id = ?", cur.Id).First(&authjwt)
+		dao.Getdb().Raw("select jwt from cookies where user_id = ?", cur.Id).First(&authjwt)
 		if authjwt == "" {
 			c.Set("AUthInfo", "Failed!")
 			c.AbortWithStatusJSON(200, gin.H{
