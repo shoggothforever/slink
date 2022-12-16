@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"shortlink/app/controller"
+	"shortlink/api/controller"
 	"shortlink/model"
 	"time"
 )
