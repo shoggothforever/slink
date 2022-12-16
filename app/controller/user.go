@@ -10,7 +10,7 @@ import (
 )
 
 /*
-向数据库中保存用户，用户名和邮箱地址不能重复
+向数据库中保存用户信息，用户名和邮箱地址不能重复
 */
 func SaveUser(u *model.User) error {
 	var user []model.User
@@ -40,6 +40,10 @@ func SaveUser(u *model.User) error {
 	}
 	return nil
 }
+
+/*
+向数据库中保存链接转换信息，数据不能重复
+*/
 func SaveUrl(u *model.UrlInfo, userid int) error {
 	var dupl []model.UrlInfo
 	dao.Getdb().Where("user_id=? and origin=? and short=?", userid, u.Origin, u.Short).First(&dupl)
@@ -66,6 +70,10 @@ func SaveUrl(u *model.UrlInfo, userid int) error {
 	}
 	return nil
 }
+
+/*
+向数据库中保存用户登录信息
+*/
 func SaveLogin(l *model.LoginInfo, userid int) error {
 	l.LoginAt = time.Now().In(time.Local)
 	l.UserId = userid
@@ -80,6 +88,10 @@ func SaveLogin(l *model.LoginInfo, userid int) error {
 
 	return nil
 }
+
+/*
+清除过期URL信息
+*/
 func CleanUrl() {
 	st := time.Now().Unix()
 	if exist := dao.Getdb().Migrator().HasTable("url_infos"); exist == true {
@@ -94,6 +106,10 @@ func CleanUrl() {
 		}
 	}
 }
+
+/*
+清除过期JWT信息
+*/
 func CleanJwt() {
 	st := time.Now().Unix()
 	if exist := dao.Getdb().Migrator().HasTable("cookies"); exist == true {
@@ -109,6 +125,10 @@ func CleanJwt() {
 		}
 	}
 }
+
+/*
+清除久远登录信息
+*/
 func CleanLogin() {
 	st := time.Now().Unix()
 	if exist := dao.Getdb().Migrator().HasTable("login_infos"); exist == true {
@@ -124,6 +144,10 @@ func CleanLogin() {
 		}
 	}
 }
+
+/*
+从上下文中获取当前登录用户信息
+*/
 func getcuruser(c *gin.Context) (model.User, bool) {
 	tmpuser, ok := c.Get("user")
 	if ok != false {

@@ -6,6 +6,9 @@ import (
 	"time"
 )
 
+/*
+若用户没有输入自定义的短链接则通过base62编码方法生成短链接
+*/
 func GenShort(shortUrl string) string {
 	ans := ""
 	if shortUrl == "" {

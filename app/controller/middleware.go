@@ -38,7 +38,7 @@ func RedirectShort() gin.HandlerFunc {
 func AuthJwt() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		jwt := c.GetHeader("Authorization")
-		if len(jwt) > 7 {
+		if len(jwt) > 7 { //为Bearer Token去除前七位数据
 			jwt = jwt[7:]
 		} else {
 			c.Set("AUthInfo", "Failed!")

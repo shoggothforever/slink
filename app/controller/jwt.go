@@ -10,7 +10,7 @@ import (
 )
 
 /*
-传入用户的id，密码作为生成jwt的参数
+传入用户的id，姓名作为生成jwt的参数
 */
 func GenerateJwt(user_id int, name string) (string, error) {
 	nowTime := time.Now().In(time.Local)
@@ -43,6 +43,10 @@ func ParseToken(token string) (*model.Claims, error) {
 	}
 	return nil, err
 }
+
+/*
+将jwt对应数据存储到本地数据库中
+*/
 func SaveJwt(id int, name string) {
 	dao.ExpireTime = 4 * time.Hour
 	model.AuthJwt, _ = GenerateJwt(id, name)

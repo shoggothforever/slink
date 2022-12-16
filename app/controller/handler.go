@@ -12,6 +12,7 @@ import (
 
 /*
 handler for /user
+输入用户的昵称邮箱和
 */
 func Register(c *gin.Context) {
 	var user model.User
@@ -261,6 +262,10 @@ func Delete(c *gin.Context) {
 		})
 	}
 }
+
+/*
+输入短链接的ID，冻结对应短链接，再次输入ID解冻
+*/
 func Pause(c *gin.Context) {
 	cur, _ := getcuruser(c)
 	id := c.PostForm("id")
