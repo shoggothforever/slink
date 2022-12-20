@@ -1,0 +1,471 @@
+basePath: /
+definitions:
+  model.DeleteResponse:
+    properties:
+      code:
+        type: integer
+      msg:
+        type: string
+    type: object
+  model.InfoResponse:
+    properties:
+      code:
+        type: integer
+      email:
+        type: string
+      id:
+        type: integer
+      msg:
+        type: string
+      name:
+        type: string
+    type: object
+  model.LoginResponse:
+    properties:
+      code:
+        type: integer
+      id:
+        type: integer
+      jwt:
+        type: string
+      msg:
+        type: string
+    type: object
+  model.QueryResponse:
+    properties:
+      code:
+        type: integer
+      msg:
+        type: string
+      url:
+        items:
+          $ref: '#/definitions/model.UrlInfo'
+        type: array
+    type: object
+  model.RegisterResponse:
+    properties:
+      code:
+        type: integer
+      msg:
+        type: string
+      user:
+        $ref: '#/definitions/model.User'
+    type: object
+  model.Response:
+    properties:
+      code:
+        type: integer
+      msg:
+        type: string
+    type: object
+  model.UpdateResponse:
+    properties:
+      code:
+        type: integer
+      msg:
+        type: string
+    type: object
+  model.UrlInfo:
+    properties:
+      comment:
+        type: string
+      expireTime:
+        type: string
+      id:
+        type: integer
+      origin:
+        type: string
+      short:
+        type: string
+      startTime:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  model.User:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      pwd:
+        type: string
+      updatedAt:
+        type: string
+      url:
+        items:
+          $ref: '#/definitions/model.UrlInfo'
+        type: array
+    type: object
+host: localhost:3000
+info:
+  contact:
+    email: 1337231450@qq.com
+    name: Kalun
+    url: 124.220.190.203
+  description: This is a sample shortLink server.
+  title: shortLink API
+  version: "1.0"
+paths:
+  /url/create:
+    post:
+      consumes:
+      - application/json
+      - application/json
+      description: get user's information
+      parameters:
+      - description: jwt
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: long url
+        in: formData
+        name: origin
+        required: true
+        type: string
+      - description: short url
+        in: formData
+        name: short
+        type: string
+      - description: comment
+        in: formData
+        name: comment
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.Response'
+      summary: 创建短链接
+      tags:
+      - Url
+  /url/delete:
+    delete:
+      consumes:
+      - application/json
+      - application/json
+      description: get user's information
+      parameters:
+      - description: jwt
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: urlId
+        in: formData
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.DeleteResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/model.Response'
+      summary: 删除短链接
+      tags:
+      - Url
+  /url/pause:
+    post:
+      consumes:
+      - application/json
+      - application/json
+      description: get user's information
+      parameters:
+      - description: jwt
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: urlId
+        in: formData
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/model.Response'
+      summary: 冻结短链接
+      tags:
+      - Url
+  /url/query:
+    post:
+      consumes:
+      - application/json
+      - application/json
+      description: get user's information
+      parameters:
+      - description: jwt
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: urlId
+        in: formData
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.QueryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.Response'
+      summary: 查询短链接
+      tags:
+      - Url
+  /url/update:
+    put:
+      consumes:
+      - application/json
+      - application/json
+      description: get user's information
+      parameters:
+      - description: jwt
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: urlId
+        in: formData
+        name: id
+        required: true
+        type: integer
+      - description: short url
+        in: formData
+        name: short
+        type: string
+      - description: comment
+        in: formData
+        name: comment
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.UpdateResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.UpdateResponse'
+      summary: 更新短链接
+      tags:
+      - Url
+  /user/info:
+    get:
+      consumes:
+      - application/json
+      - application/json
+      description: get user's information
+      parameters:
+      - description: jwt
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.InfoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.Response'
+      summary: 获取用户信息
+      tags:
+      - User
+  /user/login:
+    post:
+      consumes:
+      - '*/*'
+      - application/json
+      description: login with correct account and password
+      parameters:
+      - description: name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: psw
+        in: formData
+        name: pwd
+        required: true
+        type: string
+      produces:
+      - '*/*'
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.LoginResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/model.Response'
+      summary: 用户登录
+      tags:
+      - User
+  /user/logout:
+    post:
+      consumes:
+      - application/json
+      - application/json
+      description: logout
+      parameters:
+      - description: jwt
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response'
+      summary: 用户退出
+      tags:
+      - User
+  /user/record/get:
+    get:
+      consumes:
+      - application/json
+      - application/json
+      description: get user's information
+      parameters:
+      - description: jwt
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.InfoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.Response'
+      summary: 获取用户登录信息
+      tags:
+      - User
+  /user/register:
+    post:
+      consumes:
+      - application/json
+      - application/json
+      description: Register with account,email and password
+      parameters:
+      - description: Name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: pwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.RegisterResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/model.Response'
+      summary: 注册用户信息
+      tags:
+      - User
+  /user/url/get:
+    get:
+      consumes:
+      - application/json
+      - application/json
+      description: get user's information
+      parameters:
+      - description: jwt
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.QueryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.Response'
+      summary: 获取用户url信息
+      tags:
+      - User
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"

@@ -2,7 +2,6 @@ package model
 
 import "time"
 
-//common response
 type Response struct {
 	Code int    `form:"code" json:"code"`
 	Msg  string `form:"msg" json:"msg"`
@@ -14,7 +13,8 @@ type RegisterResponse struct {
 }
 type LoginResponse struct {
 	Response
-	Id int
+	Id  int
+	Jwt string
 }
 
 //content the list of urls,use for get function

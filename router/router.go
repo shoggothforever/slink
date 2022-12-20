@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"shortlink/api/controller"
+	"shortlink/docs"
 	"shortlink/model"
 	"time"
 )
@@ -20,6 +23,7 @@ func Router() {
 	f, _ := os.Create("sl.log")
 	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
 	r := gin.Default()
+	docs.SwaggerInfo.BasePath = "/"
 	/*
 		添加前端需求的方法
 		r.SetFuncMap(template.FuncMap{
@@ -57,6 +61,7 @@ func Router() {
 
 		c.JSON(200, fmt.Sprintf("Cookie value: %s \n", cookie))
 	})
+	//r.GET("/bit.do", redirect)
 	userRoute := r.Group("/user")
 	{
 		userRoute.POST("/register", controller.Register)
@@ -74,7 +79,7 @@ func Router() {
 		urlRoute.DELETE("/delete", controller.Delete)
 		urlRoute.POST("/pause", controller.Pause)
 	}
-
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	//平滑地关机
 	go controller.CleanUrl()
 	go controller.CleanJwt()
