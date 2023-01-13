@@ -12,7 +12,7 @@ import (
 
 /*
 handler for /user
-输入用户的昵称邮箱和
+输入用户的昵称邮箱和密码
 */
 func Register(c *gin.Context) {
 	var user model.User
