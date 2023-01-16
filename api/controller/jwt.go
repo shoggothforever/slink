@@ -47,19 +47,8 @@ func ParseToken(token string) (*model.Claims, error) {
 /*
 将jwt对应数据存储到本地数据库中
 */
-func SaveJwt(id int, name string) {
-	dao.ExpireTime = 4 * time.Hour
-	model.AuthJwt, _ = GenerateJwt(id, name)
-	model.AuthClaims, _ = ParseToken(model.AuthJwt)
-	var cookie model.Cookie
-	cookie.UserId = id
-	cookie.Jwt = model.AuthJwt
-	cookie.CreatedAt = time.Now().In(time.Local)
-	var del model.Cookie
-	dao.Getdb().Model(&cookie).Where("user_id=?", id).Delete(&del)
-	dao.Getdb().Model(&cookie).Create(&cookie)
-}
-func messagedigest5(s string) string {
+
+func Messagedigest5(s string) string {
 	data := md5.Sum([]byte(s + dao.Salt))
 	return fmt.Sprintf("%x", data)
 }

@@ -16,18 +16,9 @@ import (
 )
 
 func Router() {
-	htmlFilePath := "templates/*.html"
 	f, _ := os.Create("sl.log")
 	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
 	r := gin.Default()
-	/*
-		添加前端需求的方法
-		r.SetFuncMap(template.FuncMap{
-
-		})
-	*/
-	r.LoadHTMLGlob(htmlFilePath)                         //htmlFilePath="templates/*"解析模板
-	r.Static("static/html/static", "./templates/static") //处理静态文件
 	srv := &http.Server{
 		Addr:    ":3000",
 		Handler: r,
@@ -40,9 +31,8 @@ func Router() {
 	r.Use(controller.RedirectShort())
 	r.GET("/", func(c *gin.Context) {
 		c.Set("userid", model.NOTLOGIN)
-		c.HTML(200, "index.html", nil)
-		//time.Sleep(5 * time.Second)
-		//c.String(http.StatusOK, "Welcome Gin Server")
+		time.Sleep(2 * time.Second)
+		c.String(http.StatusOK, "Welcome Gin Server")
 	})
 	r.GET("/exit", func(c *gin.Context) {
 		srv.Shutdown(context.Background())

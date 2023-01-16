@@ -32,7 +32,7 @@ func Register(c *gin.Context) {
 	if user.Name == "" || user.Email == "" || user.Pwd == "" {
 		return
 	}
-	if err := SaveUser(&user); err == nil {
+	if err := dao.SaveUser(&user); err == nil {
 		c.JSON(200, model.RegisterResponse{
 			model.Response{200, "注册成功"},
 			user,
@@ -74,7 +74,7 @@ func Login(c *gin.Context) {
 			"msg":  "登录失败，请输入正确的账户名和密码",
 		})
 	} else {
-		if err := SaveLogin(&login, data[0].Id); err == nil {
+		if err := dao.SaveLogin(&login, data[0].Id); err == nil {
 			cur := data[0]
 			SaveJwt(cur.Id, cur.Name)
 			c.JSON(200, gin.H{
@@ -174,7 +174,7 @@ func Create(c *gin.Context) {
 	}
 	url.Short = GenShort(c.PostForm("short"))
 	url.Comment = c.PostForm("comment")
-	if err := SaveUrl(&url, cur.Id); err == nil {
+	if err := dao.SaveUrl(&url, cur.Id); err == nil {
 		c.JSON(200, gin.H{
 			"code":    200,
 			"msg":     "链接信息存储成功",
