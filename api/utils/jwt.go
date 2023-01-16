@@ -1,20 +1,24 @@
-package controller
+package utils
 
 import (
 	"crypto/md5"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"shortlink/dao"
 	"shortlink/model"
 	"time"
 )
 
+var JwtSecret string
+var Salt string
+var ExpireTime time.Duration
+
 /*
 传入用户的id，姓名作为生成jwt的参数
 */
+
 func GenerateJwt(user_id int, name string) (string, error) {
 	nowTime := time.Now().In(time.Local)
-	expireTime := nowTime.Add(dao.ExpireTime)
+	expireTime := nowTime.Add(ExpireTime)
 	claims := model.Claims{
 		user_id,
 		name,
@@ -25,13 +29,13 @@ func GenerateJwt(user_id int, name string) (string, error) {
 		},
 	}
 	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	token, err := tokenClaims.SignedString([]byte(dao.JwtSecret))
+	token, err := tokenClaims.SignedString([]byte(JwtSecret))
 	return token, err
 }
 
 func ParseToken(token string) (*model.Claims, error) {
 	tokenClaims, err := jwt.ParseWithClaims(token, &model.Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(dao.JwtSecret), nil
+		return []byte(JwtSecret), nil
 	})
 	if err != nil {
 		return nil, err
@@ -47,19 +51,8 @@ func ParseToken(token string) (*model.Claims, error) {
 /*
 将jwt对应数据存储到本地数据库中
 */
-func SaveJwt(id int, name string) {
-	dao.ExpireTime = 4 * time.Hour
-	model.AuthJwt, _ = GenerateJwt(id, name)
-	model.AuthClaims, _ = ParseToken(model.AuthJwt)
-	var cookie model.Cookie
-	cookie.UserId = id
-	cookie.Jwt = model.AuthJwt
-	cookie.CreatedAt = time.Now().In(time.Local)
-	var del model.Cookie
-	dao.Getdb().Model(&cookie).Where("user_id=?", id).Delete(&del)
-	dao.Getdb().Model(&cookie).Create(&cookie)
-}
-func messagedigest5(s string) string {
-	data := md5.Sum([]byte(s + dao.Salt))
+
+func Messagedigest5(s string) string {
+	data := md5.Sum([]byte(s + Salt))
 	return fmt.Sprintf("%x", data)
 }

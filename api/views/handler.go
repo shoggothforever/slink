@@ -1,9 +1,11 @@
-package controller
+package views
 
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
+	"shortlink/api/controller"
+	"shortlink/api/utils"
 	"shortlink/dao"
 	"shortlink/model"
 	"strconv"
@@ -32,7 +34,7 @@ func Register(c *gin.Context) {
 	if user.Name == "" || user.Email == "" || user.Pwd == "" {
 		return
 	}
-	if err := SaveUser(&user); err == nil {
+	if err := dao.SaveUser(&user); err == nil {
 		c.JSON(200, model.RegisterResponse{
 			model.Response{200, "注册成功"},
 			user,
@@ -58,7 +60,7 @@ func Login(c *gin.Context) {
 	if user.Name == "" {
 		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入用户名"})
 	}
-	user.Pwd = messagedigest5(c.PostForm("pwd"))
+	user.Pwd = utils.Messagedigest5(c.PostForm("pwd"))
 
 	if user.Name == "" {
 		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入密码"})
@@ -74,9 +76,9 @@ func Login(c *gin.Context) {
 			"msg":  "登录失败，请输入正确的账户名和密码",
 		})
 	} else {
-		if err := SaveLogin(&login, data[0].Id); err == nil {
+		if err := dao.SaveLogin(&login, data[0].Id); err == nil {
 			cur := data[0]
-			SaveJwt(cur.Id, cur.Name)
+			dao.SaveJwt(cur.Id, cur.Name)
 			c.JSON(200, gin.H{
 				"code": 200,
 				"msg":  "登陆成功",
@@ -99,7 +101,7 @@ func Logout(c *gin.Context) {
 
 // info
 func GetInfo(c *gin.Context) {
-	cur, _ := getcuruser(c)
+	cur, _ := controller.Getcuruser(c)
 	c.JSON(200, model.InfoResponse{
 		model.Response{200, "当前用户信息:"},
 		cur.GetId(),
@@ -112,7 +114,7 @@ func GetInfo(c *gin.Context) {
 // record/get
 func GetLoginInfo(c *gin.Context) {
 	var infos []model.LoginRecord
-	cur, _ := getcuruser(c)
+	cur, _ := controller.Getcuruser(c)
 	id := cur.GetId()
 	page := 0
 	page, _ = strconv.Atoi(c.Query("page"))
@@ -137,7 +139,7 @@ func GetLoginInfo(c *gin.Context) {
 
 // url/get
 func GetUrl(c *gin.Context) {
-	cur, _ := getcuruser(c)
+	cur, _ := controller.Getcuruser(c)
 	var urls []model.UrlInfo
 	id := cur.GetId()
 	page := 0
@@ -165,16 +167,16 @@ func GetUrl(c *gin.Context) {
 handler for /url
 */
 func Create(c *gin.Context) {
-	cur, _ := getcuruser(c)
+	cur, _ := controller.Getcuruser(c)
 	var url model.UrlInfo
 	url.Origin = c.PostForm("origin")
 	if url.Origin == "" {
 		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入需要转换的链接"})
 		return
 	}
-	url.Short = GenShort(c.PostForm("short"))
+	url.Short = utils.GenShort(c.PostForm("short"))
 	url.Comment = c.PostForm("comment")
-	if err := SaveUrl(&url, cur.Id); err == nil {
+	if err := dao.SaveUrl(&url, cur.Id); err == nil {
 		c.JSON(200, gin.H{
 			"code":    200,
 			"msg":     "链接信息存储成功",
@@ -188,7 +190,7 @@ func Create(c *gin.Context) {
 	}
 }
 func Query(c *gin.Context) {
-	cur, _ := getcuruser(c)
+	cur, _ := controller.Getcuruser(c)
 	var url []model.UrlInfo
 	id := c.PostForm("id")
 	user_id := cur.Id
@@ -212,7 +214,7 @@ func Query(c *gin.Context) {
 	}
 }
 func Update(c *gin.Context) {
-	cur, _ := getcuruser(c)
+	cur, _ := controller.Getcuruser(c)
 	var url model.UrlInfo
 	url.Origin = ""
 	userid := cur.GetId()
@@ -221,7 +223,7 @@ func Update(c *gin.Context) {
 		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入需要查找的链接ID"})
 		return
 	}
-	url.Short = GenShort(c.PostForm("newshort"))
+	url.Short = utils.GenShort(c.PostForm("newshort"))
 	url.Comment = c.PostForm("comment")
 	dao.Getdb().Model(model.UrlInfo{}).Where("user_id=? and id=?", userid, id).First(&url)
 	if url.Origin != "" {
@@ -242,7 +244,7 @@ func Update(c *gin.Context) {
 
 }
 func Delete(c *gin.Context) {
-	cur, _ := getcuruser(c)
+	cur, _ := controller.Getcuruser(c)
 	var url []model.UrlInfo
 	userid := cur.GetId()
 	id := c.PostForm("id")
@@ -267,7 +269,7 @@ func Delete(c *gin.Context) {
 输入短链接的ID，冻结对应短链接，再次输入ID解冻
 */
 func Pause(c *gin.Context) {
-	cur, _ := getcuruser(c)
+	cur, _ := controller.Getcuruser(c)
 	id := c.PostForm("id")
 	if id == "" {
 		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入需要冻结的链接ID"})

@@ -5,21 +5,17 @@ import (
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"shortlink/api/utils"
 	"shortlink/model"
 	"sync"
 )
 
 var Db *gorm.DB
-var JwtSecret string
-var Salt string
 var Lock sync.Mutex
 
-/*
-* @brief init the config of viper and database
-set default viper config path and read data from config.yaml
-to get mysql userInfo,jwt secretKey
-open mysql database with gorm and create table with user Struct
-*/
+func Getdb() *gorm.DB {
+	return Db
+}
 
 func Init() {
 	//Configure the viper
@@ -37,19 +33,26 @@ func Init() {
 			logrus.Error("found error in config file\n", ok)
 		}
 	}
-	Salt = Config.GetString("Salt")
+	utils.Salt = Config.GetString("Salt")
 	jwtInfo := Config.GetStringMapString("Jwt")
-	JwtSecret = jwtInfo["secret"]
+	utils.JwtSecret = jwtInfo["secret"]
 	loginInfo := Config.GetStringMapString("mysql")
 	Dsn := loginInfo["predsn"] + loginInfo["database"] + loginInfo["mode"]
 	Db, err = gorm.Open(mysql.Open(Dsn), &gorm.Config{SkipDefaultTransaction: true})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"error": err}).Error("gorm OPENS MySQL failed")
 	}
-	err = Db.AutoMigrate(&model.User{}, &model.UrlInfo{}, &model.LoginInfo{}, &model.Cookie{}, &model.PauseUrl{})
+	err = Getdb().AutoMigrate(&model.User{}, &model.UrlInfo{}, &model.LoginInfo{}, &model.Cookie{}, &model.PauseUrl{})
 	if err != nil {
 		logrus.Error("build tables corrupt!\n", err)
 	}
 	model.DefaultUser.Id = model.NOTLOGIN
 	model.DefaultUser.Name = "origin"
 }
+
+/*
+* @brief init the config of viper and database
+set default viper config path and read data from config.yaml
+to get mysql userInfo,jwt secretKey
+open mysql database with gorm and create table with user Struct
+*/
