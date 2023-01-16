@@ -1,12 +1,12 @@
 package main
 
 import (
-	"shortlink/model"
+	"shortlink/dao"
 	"shortlink/router"
 )
 
 func init() {
-	model.Init()
+	dao.Init()
 }
 func main() {
 	router.Router()

@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-package model
+package dao
 
 import (
 	"github.com/sirupsen/logrus"
@@ -13,9 +12,11 @@ import (
 
 var Db *gorm.DB
 var Lock sync.Mutex
+
 func Getdb() *gorm.DB {
 	return Db
 }
+
 func Init() {
 	//Configure the viper
 	Config := viper.New()
@@ -32,35 +33,23 @@ func Init() {
 			logrus.Error("found error in config file\n", ok)
 		}
 	}
-<<<<<<<< HEAD:dao/info.go
 	utils.Salt = Config.GetString("Salt")
 	jwtInfo := Config.GetStringMapString("Jwt")
 	utils.JwtSecret = jwtInfo["secret"]
-========
-	dao.Salt = Config.GetString("Salt")
-	jwtInfo := Config.GetStringMapString("Jwt")
-	dao.JwtSecret = jwtInfo["secret"]
->>>>>>>> refs/remotes/origin/master:model/database.go
 	loginInfo := Config.GetStringMapString("mysql")
 	Dsn := loginInfo["predsn"] + loginInfo["database"] + loginInfo["mode"]
-	dao.Db, err = gorm.Open(mysql.Open(Dsn), &gorm.Config{SkipDefaultTransaction: true})
+	Db, err = gorm.Open(mysql.Open(Dsn), &gorm.Config{SkipDefaultTransaction: true})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"error": err}).Error("gorm OPENS MySQL failed")
 	}
-<<<<<<<< HEAD:dao/info.go
 	err = Getdb().AutoMigrate(&model.User{}, &model.UrlInfo{}, &model.LoginInfo{}, &model.Cookie{}, &model.PauseUrl{})
-========
-	err = dao.Getdb().AutoMigrate(&User{}, &UrlInfo{}, &LoginInfo{}, &Cookie{}, &PauseUrl{})
->>>>>>>> refs/remotes/origin/master:model/database.go
 	if err != nil {
 		logrus.Error("build tables corrupt!\n", err)
 	}
-	DefaultUser.Id = NOTLOGIN
-	DefaultUser.Name = "origin"
+	model.DefaultUser.Id = model.NOTLOGIN
+	model.DefaultUser.Name = "origin"
 }
 
-=======
->>>>>>> refs/remotes/origin/master
 /*
 * @brief init the config of viper and database
 set default viper config path and read data from config.yaml

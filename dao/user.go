@@ -3,11 +3,7 @@ package dao
 import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
-<<<<<<< HEAD
 	"shortlink/api/utils"
-=======
-	"shortlink/api/controller"
->>>>>>> refs/remotes/origin/master
 	"shortlink/model"
 	"time"
 )
@@ -29,11 +25,7 @@ func SaveUser(u *model.User) error {
 	/*
 		给用户密码进行MD5加密
 	*/
-<<<<<<< HEAD
 	u.Pwd = utils.Messagedigest5(u.Pwd)
-=======
-	u.Pwd = controller.Messagedigest5(u.Pwd)
->>>>>>> refs/remotes/origin/master
 	Lock.Lock()
 	if err := Getdb().Omit("id").Create(u).Error; err != nil {
 		logrus.Error("插入数据失败", err)
@@ -94,7 +86,6 @@ func SaveLogin(l *model.LoginInfo, userid int) error {
 }
 
 func SaveJwt(id int, name string) {
-<<<<<<< HEAD
 	utils.ExpireTime = 4 * time.Hour
 	model.AuthJwt, _ = utils.GenerateJwt(id, name)
 	model.AuthClaims, _ = utils.ParseToken(model.AuthJwt)
