@@ -1,5 +1,7 @@
 #tempory ignore
-
+Dockerfile
+docker-compose.yml
+mysql.sh
 
 # Binaries for programs and plugins
 

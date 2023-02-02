@@ -21,6 +21,7 @@ func Router() {
 	f, _ := os.Create("sl.log")
 	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
 	r := gin.Default()
+	r.Use(middleware.Cors())
 	srv := &http.Server{
 		Addr:    ":3000",
 		Handler: r,

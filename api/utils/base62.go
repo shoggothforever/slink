@@ -19,7 +19,6 @@ func GenShort(shortUrl string) string {
 			if temp == 0 {
 				break
 			}
-
 			now := temp % 62
 			if now >= 0 && now <= 25 { //generate A-Z
 				ans = ans + string(65+now)

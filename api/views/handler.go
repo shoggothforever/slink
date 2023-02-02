@@ -20,19 +20,20 @@ func Register(c *gin.Context) {
 	var user model.User
 	//var login model.LoginInfo
 	user.Name = c.PostForm("name")
+	user.Email = c.PostForm("email")
+	user.Pwd = c.PostForm("pwd")
 	if user.Name == "" {
 		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入用户名"})
 	}
-	user.Email = c.PostForm("email")
 	if user.Name == "" {
 		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入邮箱"})
 	}
-	user.Pwd = c.PostForm("pwd")
 	if user.Name == "" {
 		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入密码"})
 	}
+	c.ShouldBind(&user)
 	if user.Name == "" || user.Email == "" || user.Pwd == "" {
-		return
+		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "注册失败"})
 	}
 	if err := dao.SaveUser(&user); err == nil {
 		c.JSON(200, model.RegisterResponse{
@@ -200,6 +201,7 @@ func Query(c *gin.Context) {
 	}
 	//dao.Getdb().Raw("select * from url_infos where url_infos.user_id=(select id from users where id=?)", id).First(&urls)
 	dao.Getdb().Model(&model.UrlInfo{}).Where("user_id=? and id=?", user_id, id).First(&url)
+
 	if len(url) == 0 {
 		logrus.Info("no such document")
 		c.JSON(200, model.Response{
@@ -218,16 +220,17 @@ func Update(c *gin.Context) {
 	var url model.UrlInfo
 	url.Origin = ""
 	userid := cur.GetId()
-	id := c.PostForm("id")
-	if id == "" {
+	urlid := c.PostForm("id")
+	if urlid == "" {
 		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入需要查找的链接ID"})
 		return
 	}
+	id, _ := strconv.Atoi(urlid)
 	url.Short = utils.GenShort(c.PostForm("newshort"))
 	url.Comment = c.PostForm("comment")
-	dao.Getdb().Model(model.UrlInfo{}).Where("user_id=? and id=?", userid, id).First(&url)
+	dao.Getdb().Model(model.UrlInfo{}).Where("user_id=? and id=?", userid, id).Select("origin").First(&url)
 	if url.Origin != "" {
-		dao.Getdb().Model(url).Updates(map[string]interface{}{
+		dao.Getdb().Model(&model.UrlInfo{UserId: userid, Id: id}).Updates(map[string]interface{}{
 			"short":       url.Short,
 			"comment":     url.Comment,
 			"start_time":  time.Now().In(time.Local),
@@ -241,7 +244,6 @@ func Update(c *gin.Context) {
 			model.Response{404, "该链接不存在"},
 		})
 	}
-
 }
 func Delete(c *gin.Context) {
 	cur, _ := controller.Getcuruser(c)
