@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  app:
+    build: /usr/src/app
+    ports:
+      - "9090:3000"
+#    volumes:
+#      - .:/usr/src/app
+  mysql:
+    image: mysql:latest
+    volumes:
+      - E:/dockerMySql/root/mysql/data:/data
+    environment:
+      - TZ=Asia/Shanghai
+      - MYSQL_ROOT_PASSWORD=root
