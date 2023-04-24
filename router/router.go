@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -18,8 +17,10 @@ import (
 )
 
 func Router() {
-	f, _ := os.Create("sl.log")
-	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
+	//f, _ := os.Create("sl.log")
+	//gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
+	//gin.SetMode(gin.ReleaseMode)
+	//r := gin.New()
 	r := gin.Default()
 	r.Use(middleware.Cors())
 	srv := &http.Server{
@@ -31,7 +32,7 @@ func Router() {
 			logrus.Fatalf("listen: %s\n", err)
 		}
 	}()
-	r.Use(middleware.RedirectShort())
+	r.GET("/bit.do/*any", middleware.RedirectShort())
 	r.GET("/", func(c *gin.Context) {
 		c.Set("userid", model.NOTLOGIN)
 		time.Sleep(2 * time.Second)
@@ -66,6 +67,7 @@ func Router() {
 		urlRoute.PUT("/update", views.Update)
 		urlRoute.DELETE("/delete", views.Delete)
 		urlRoute.POST("/pause", views.Pause)
+
 	}
 
 	//平滑地关机

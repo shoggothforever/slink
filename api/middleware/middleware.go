@@ -3,12 +3,13 @@ package middleware
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"net/http"
-	"shortlink/dao"
+	"shortlink/dal"
 	"shortlink/model"
 )
 
-//使用中间件实现重定向
+// 使用中间件实现重定向
 func RedirectShort() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		short := c.Request.URL.String()
@@ -17,14 +18,19 @@ func RedirectShort() gin.HandlerFunc {
 		var urls []model.UrlInfo
 		var purl model.PauseUrl
 		purl.Short = ""
-		dao.Getdb().Where("short=?", short).First(&purl)
-		if purl.Short != "" {
+		err := dal.Getdb().Where("short=?", short).First(&purl).Error
+		if err == nil {
 			c.JSON(200, gin.H{
 				"code": 403,
 				"msg":  "短链接已冻结，请解冻后再试",
 			})
+		} else if err != nil && err != gorm.ErrRecordNotFound {
+			c.JSON(200, gin.H{
+				"code": 500,
+				"msg":  "重定向服务失败",
+			})
 		} else {
-			dao.Getdb().Where("short=?", short).Find(&urls)
+			dal.Getdb().Where("short=?", short).Find(&urls)
 			if len(urls) != 0 {
 				c.Redirect(302, urls[0].Origin)
 			} else {
@@ -35,7 +41,7 @@ func RedirectShort() gin.HandlerFunc {
 	}
 }
 
-//使用中间件实现鉴权
+// 使用中间件实现鉴权
 func AuthJwt() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		jwt := c.GetHeader("Authorization")
@@ -49,10 +55,10 @@ func AuthJwt() gin.HandlerFunc {
 			return
 		} //如果在PostMan中使用 Bearer Token 会在jwt前加上bearer: 前缀
 		var cur model.User
-		dao.Getdb().Raw("select * from users where id =(select user_id from cookies where user_id=id)").First(&cur)
+		dal.Getdb().Raw("select * from users where id =(select user_id from cookies where user_id=id)").First(&cur)
 		c.Set("user", cur)
 		var authjwt string
-		dao.Getdb().Raw("select jwt from cookies where user_id = ?", cur.Id).First(&authjwt)
+		dal.Getdb().Raw("select jwt from cookies where user_id = ?", cur.Id).First(&authjwt)
 		if authjwt == "" {
 			c.Set("AUthInfo", "Failed!")
 			c.AbortWithStatusJSON(200, gin.H{
@@ -68,6 +74,7 @@ func AuthJwt() gin.HandlerFunc {
 			return
 		} else {
 			c.Set("AuthInfo", "Success!")
+			c.Set("user", cur)
 			c.Next()
 		}
 

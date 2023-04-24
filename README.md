@@ -13,3 +13,12 @@
 10. 鉴权信息，用户登录后自动生成jwt，持续存储在本地数据库中，避免泄漏，将jwt信息可以存储在header的Authorization中
 11. 定时清除数据库中过期记录(url记录和登录记录），使用协程管道完成
 12. 对数据库的写入加锁，确保线程安全
+
+在服务器上部署需要更改的设置
+1. mysql dsn "slink:slink123@tcp(localhost:3306)/slink?charset=utf8&parseTime=true&loc=Local"
+2. gin的模式切换为releasseMODe
+```
+gin.Setmode(gin.ReleaseMode)  
+r:=gin.New()
+```
+3. 切换gin监听的端口为9005

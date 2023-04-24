@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 	"shortlink/api/controller"
 	"shortlink/api/utils"
-	"shortlink/dao"
+	"shortlink/dal"
 	"shortlink/model"
 	"strconv"
 	"time"
@@ -35,7 +35,7 @@ func Register(c *gin.Context) {
 	if user.Name == "" || user.Email == "" || user.Pwd == "" {
 		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "注册失败"})
 	}
-	if err := dao.SaveUser(&user); err == nil {
+	if err := dal.SaveUser(&user); err == nil {
 		c.JSON(200, model.RegisterResponse{
 			model.Response{200, "注册成功"},
 			user,
@@ -70,16 +70,16 @@ func Login(c *gin.Context) {
 		return
 	}
 	var data []model.User
-	dao.Getdb().Where("name=? AND pwd=?", user.Name, user.Pwd).First(&data)
+	dal.Getdb().Where("name=? AND pwd=?", user.Name, user.Pwd).First(&data)
 	if len(data) == 0 {
 		c.JSON(200, gin.H{
 			"code": 403,
 			"msg":  "登录失败，请输入正确的账户名和密码",
 		})
 	} else {
-		if err := dao.SaveLogin(&login, data[0].Id); err == nil {
+		if err := dal.SaveLogin(&login, data[0].Id); err == nil {
 			cur := data[0]
-			dao.SaveJwt(cur.Id, cur.Name)
+			dal.SaveJwt(cur.Id, cur.Name)
 			c.JSON(200, gin.H{
 				"code": 200,
 				"msg":  "登陆成功",
@@ -123,7 +123,7 @@ func GetLoginInfo(c *gin.Context) {
 		page = 1
 	}
 	page = (page - 1) * 10
-	dao.Getdb().Raw("select id,user_id,login_at from login_infos where user_id=? limit ?,10", id, page).Find(&infos)
+	dal.Getdb().Raw("select id,user_id,login_at from login_infos where user_id=? limit ?,10", id, page).Find(&infos)
 	if len(infos) == 0 {
 		logrus.Info("no login document")
 		c.JSON(200, model.Response{
@@ -149,7 +149,7 @@ func GetUrl(c *gin.Context) {
 		page = 1
 	}
 	page = (page - 1) * 10
-	dao.Getdb().Raw("select * from url_infos where user_id=(select id from users where id=?) limit ?,10", id, page).Find(&urls)
+	dal.Getdb().Raw("select * from url_infos where user_id=(select id from users where id=?) limit ?,10", id, page).Find(&urls)
 	if len(urls) == 0 {
 		logrus.Info("no such document")
 		c.JSON(200, model.Response{
@@ -177,7 +177,7 @@ func Create(c *gin.Context) {
 	}
 	url.Short = utils.GenShort(c.PostForm("short"))
 	url.Comment = c.PostForm("comment")
-	if err := dao.SaveUrl(&url, cur.Id); err == nil {
+	if err := dal.SaveUrl(&url, cur.Id); err == nil {
 		c.JSON(200, gin.H{
 			"code":    200,
 			"msg":     "链接信息存储成功",
@@ -200,7 +200,7 @@ func Query(c *gin.Context) {
 		return
 	}
 	//dao.Getdb().Raw("select * from url_infos where url_infos.user_id=(select id from users where id=?)", id).First(&urls)
-	dao.Getdb().Model(&model.UrlInfo{}).Where("user_id=? and id=?", user_id, id).First(&url)
+	dal.Getdb().Model(&model.UrlInfo{}).Where("user_id=? and id=?", user_id, id).First(&url)
 
 	if len(url) == 0 {
 		logrus.Info("no such document")
@@ -228,9 +228,9 @@ func Update(c *gin.Context) {
 	id, _ := strconv.Atoi(urlid)
 	url.Short = utils.GenShort(c.PostForm("newshort"))
 	url.Comment = c.PostForm("comment")
-	dao.Getdb().Model(model.UrlInfo{}).Where("user_id=? and id=?", userid, id).Select("origin").First(&url)
+	dal.Getdb().Model(model.UrlInfo{}).Where("user_id=? and id=?", userid, id).Select("origin").First(&url)
 	if url.Origin != "" {
-		dao.Getdb().Model(&model.UrlInfo{UserId: userid, Id: id}).Updates(map[string]interface{}{
+		dal.Getdb().Model(&model.UrlInfo{UserId: userid, Id: id}).Updates(map[string]interface{}{
 			"short":       url.Short,
 			"comment":     url.Comment,
 			"start_time":  time.Now().In(time.Local),
@@ -254,13 +254,13 @@ func Delete(c *gin.Context) {
 		c.AbortWithStatusJSON(200, gin.H{"code": 403, "msg": "请输入需要删除的链接ID"})
 		return
 	}
-	dao.Getdb().Where("user_id=? and id=?", userid, id).Find(&url)
+	dal.Getdb().Where("user_id=? and id=?", userid, id).Find(&url)
 	if len(url) == 0 {
 		c.JSON(200, model.Response{
 			404, "表中没有该数据",
 		})
 	} else {
-		dao.Getdb().Model(model.UrlInfo{}).Delete(&url)
+		dal.Getdb().Model(model.UrlInfo{}).Delete(&url)
 		c.JSON(200, model.UpdateResponse{
 			model.Response{200, "删除成功"},
 		})
@@ -282,17 +282,17 @@ func Pause(c *gin.Context) {
 	var purl model.PauseUrl
 	url.Short = ""
 	purl.Short = ""
-	dao.Getdb().Model(&model.UrlInfo{}).Where("id=? and user_id=?", id, user_id).First(&url)
-	dao.Getdb().Model(&model.PauseUrl{}).Where("url_id=? and user_id=?", id, user_id).First(&purl)
+	dal.Getdb().Model(&model.UrlInfo{}).Where("id=? and user_id=?", id, user_id).First(&url)
+	dal.Getdb().Model(&model.PauseUrl{}).Where("url_id=? and user_id=?", id, user_id).First(&purl)
 	if url.Short != "" && purl.Short == "" {
 		var p model.PauseUrl
 		p.UrlId, _ = strconv.Atoi(id)
 		p.UserId = user_id
 		p.Short = url.Short
-		dao.Getdb().Model(&model.PauseUrl{}).Create(p)
+		dal.Getdb().Model(&model.PauseUrl{}).Create(p)
 		c.JSON(200, gin.H{"msg": "短链接暂停成功"})
 	} else if url.Short != "" && purl.Short != "" {
-		dao.Getdb().Model(&model.PauseUrl{}).Where("url_id=? and user_id=?", id, user_id).Delete(&purl)
+		dal.Getdb().Model(&model.PauseUrl{}).Where("url_id=? and user_id=?", id, user_id).Delete(&purl)
 		c.JSON(200, gin.H{"msg": "短链接重新启用"})
 	} else {
 		c.JSON(200, gin.H{"msg": "请输入正确的短链接编号"})
